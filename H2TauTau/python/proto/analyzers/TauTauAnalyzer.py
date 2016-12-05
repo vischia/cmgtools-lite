@@ -12,7 +12,7 @@ from PhysicsTools.Heppy.physicsobjects.Electron import Electron
 
 from CMGTools.H2TauTau.proto.analyzers.TauIsolationCalculator import TauIsolationCalculator
 from CMGTools.H2TauTau.proto.analyzers.DiLeptonAnalyzer import DiLeptonAnalyzer
-from CMGTools.H2TauTau.proto.physicsobjects.DiObject import TauTau, DirectDiTau
+from CMGTools.H2TauTau.proto.physicsobjects.DiObject import TauTau, DirectTauTau
 
 
 class TauTauAnalyzer(DiLeptonAnalyzer):
@@ -109,6 +109,8 @@ class TauTauAnalyzer(DiLeptonAnalyzer):
         # choses the best di-tau pair, with the bestDiLepton method
         # as implemented here
 
+        event.goodVertices = event.vertices
+
         result = super(TauTauAnalyzer, self).process(event)
 
         event.isSignal = False
@@ -130,24 +132,8 @@ class TauTauAnalyzer(DiLeptonAnalyzer):
         if not (hasattr(event, 'leg1') and hasattr(event, 'leg2')):
             return False
 
-#     # RIC: agreed to sort by isolation 19/8/2015
-#     # make sure that the legs are sorted by pt
-#     if event.leg1.pt() < event.leg2.pt() :
-#       event.leg1 = event.diLepton.leg2()
-#       event.leg2 = event.diLepton.leg1()
-#       event.selectedLeptons = [event.leg2, event.leg1]
-
         if hasattr(self.cfg_ana, 'scaleTaus') and self.cfg_ana.scaleTaus:
             self.scaleDiLep(event.diLepton)
-
-        # RIC: agreed with Adinda to sort taus by isolation
-        # JAN: This code however doesn't fix the order in the dilepton object -
-        #      added it there
-        # iso = self.cfg_ana.isolation
-        # if event.leg1.tauID(iso) < event.leg2.tauID(iso):
-        #     event.leg1 = event.diLepton.leg2()
-        #     event.leg2 = event.diLepton.leg1()
-        #     event.selectedLeptons = [event.leg2, event.leg1]
 
         if hasattr(event, 'calibratedPfMet'):
             event.pfmet = event.calibratedPfMet
@@ -191,7 +177,7 @@ class TauTauAnalyzer(DiLeptonAnalyzer):
         for leg1 in taus:
             for leg2 in taus:
                 if leg1 != leg2:
-                    di_tau = DirectDiTau(Tau(leg1), Tau(leg2), met)
+                    di_tau = DirectTauTau(Tau(leg1), Tau(leg2), met)
                     di_tau.leg2().associatedVertex = event.goodVertices[0]
                     di_tau.leg1().associatedVertex = event.goodVertices[0]
                     di_tau.mvaMetSig = None
@@ -205,9 +191,9 @@ class TauTauAnalyzer(DiLeptonAnalyzer):
         for index, lep in enumerate(cmgLeptons):
             pyl = Muon(lep)
             pyl.associatedVertex = event.goodVertices[0]
-            if not pyl.muonID('POG_ID_Medium'):
+            if not pyl.muonID('POG_ID_Medium_ICHEP'):
                 continue
-            if not pyl.relIsoR(R=0.3, dBetaFactor=0.5, allCharged=0) < 0.3:
+            if not pyl.relIsoR(R=0.4, dBetaFactor=0.5, allCharged=0) < 0.3:
                 continue
             if not self.testLegKine(pyl, ptcut=10, etacut=2.4):
                 continue
@@ -277,8 +263,10 @@ class TauTauAnalyzer(DiLeptonAnalyzer):
     def trigMatched(self, event, diL, requireAllMatched=False):
         matched = super(TauTauAnalyzer, self).trigMatched(event, diL, requireAllMatched=requireAllMatched, checkBothLegs=True)
 
-        if not self.l1Matched(event, diL):
-            matched = False
+        # Not needed in 2016, for the moment
+        
+        # if not self.l1Matched(event, diL):
+        #     matched = False
 
         return matched
 
@@ -309,15 +297,41 @@ class TauTauAnalyzer(DiLeptonAnalyzer):
         return allMatched
 
     def bestDiLepton(self, diLeptons):
-        '''Returns the best diLepton (1st precedence most isolated opposite-sign,
+        '''Returns the best diLepton (1st precedence highest pT,
         2nd precedence most isolated).'''
         # osDiLeptons = [dl for dl in diLeptons if dl.leg1().charge() != dl.leg2().charge()]
         # least_iso_highest_pt = lambda dl : min((dl.leg1().tauID(self.cfg_ana.isolation), -dl.leg1().pt()), (dl.leg2().tauID(self.cfg_ana.isolation), -dl.leg2().pt()))
-        least_iso_highest_pt = lambda dl: (-dl.leg1().tauID(self.cfg_ana.isolation), -dl.leg1().pt(), -dl.leg2().tauID(self.cfg_ana.isolation), -dl.leg2().pt())
+
+        # least_iso_highest_pt = lambda dl: (-dl.leg1().tauID(self.cfg_ana.isolation), -dl.leg1().pt(), -dl.leg2().tauID(self.cfg_ana.isolation), -dl.leg2().pt())
+
+        least_iso_highest_pt = lambda dl: (-dl.leg1().tauID(self.cfg_ana.isolation) - dl.leg2().tauID(self.cfg_ana.isolation), -dl.leg1().pt() - dl.leg2().pt())
+
+        # def id3(tau,X):
+        #     """Create an integer equal to 1-2-3 for (loose,medium,tight)"""
+        #     return tau.tauID(X%"Loose") + tau.tauID(X%"Medium") + tau.tauID(X%"Tight")
+        # def id5(tau,X):
+        #     """Create an integer equal to 1-2-3-4-5 for (very loose, 
+        #         loose, medium, tight, very tight)"""
+        #     return id3(tau, X) + tau.tauID(X%"VLoose") + tau.tauID(X%"VTight")
+        # def id6(tau,X):
+        #     """Create an integer equal to 1-2-3-4-5-6 for (very loose, 
+        #         loose, medium, tight, very tight, very very tight)"""
+        #     return id5(tau, X) + tau.tauID(X%"VVTight")
+
+        # iso_string = self.cfg_ana.isolation.replace('raw', '').replace('byIso', 'by%sIso')
+
+        # least_iso_highest_pt = lambda dl: (-id6(dl.leg1(), iso_string) - id6(dl.leg2(), iso_string), -dl.leg1().pt(), -dl.leg2().pt())
+
+        # highest_pt_least_iso = lambda dl: (-dl.leg1().pt(), -dl.leg1().tauID(self.cfg_ana.isolation), -dl.leg2().pt(), -dl.leg2().tauID(self.cfg_ana.isolation))
+
+
         # set reverse = True in case the isolation changes to MVA
         # in that case the least isolated is the one with the lowest MVAscore
         # if osDiLeptons : return sorted(osDiLeptons, key=lambda dl : least_iso(dl), reverse=False)[0]
         # else           :
+
+        # import pdb; pdb.set_trace()
+
         return sorted(diLeptons, key=lambda dl: least_iso_highest_pt(dl), reverse=False)[0]
 
     def scaleP4(self, tau, scale):

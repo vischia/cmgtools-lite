@@ -1,0 +1,13 @@
+El plot con las SRs se crea con SR_ewk_ss2 en plots_2lss.txt
+
+Para que la leyenda te muestre los procesos con poca contribución: LegendCutoff=1e-3
+
+Para bines bonitos: XNDiv=018 o XNDiv=109
+
+Añadir 3 señales cerca de la exclusion
+Se añaden a la lista de muestras con sig_ y acabadas en +
+Añadir al comando: --showIndivSigs --noStackSig
+
+-E nombrecorte
+ YMin e YMax para el eje Y... que empiece en 0.1
+

@@ -36,12 +36,12 @@ def autoConfig(selectedComponents,sequence,services=[],xrd_aggressive=2):
     from PhysicsTools.HeppyCore.framework.eventsfwlite import Events
     from CMGTools.TTHAnalysis.tools.EOSEventsWithDownload import EOSEventsWithDownload
     event_class = EOSEventsWithDownload
-    EOSEventsWithDownload.aggressive = xrd_aggressive 
+    EOSEventsWithDownload.aggressive = xrd_aggressive
     if getHeppyOption("nofetch") or getHeppyOption("isCrab"):
         event_class = Events
     return cfg.Config( components = selectedComponents,
                      sequence = sequence,
-                     services = services,  
+                     services = services,
                      events_class = event_class)
 
 
@@ -55,23 +55,28 @@ from CMGTools.RootTools.RootTools import *
 from PhysicsTools.HeppyCore.framework.heppy_loop import getHeppyOption
 
 #Load all common analyzers
-from CMGTools.VVResonances.analyzers.core_cff import * 
+from CMGTools.VVResonances.analyzers.core_cff import *
+
+#PUPPI by default #uncomment for prunning
+#doPruning()
+
+
 
 #-------- SAMPLES AND TRIGGERS -----------
 from CMGTools.VVResonances.samples.loadSamples import *
 
-selectedComponents = mcSamples
+selectedComponents = mcSamples+dataSamples
 
 
 
 #import pdb;pdb.set_trace()
 
 #-------- Analyzer
-from CMGTools.VVResonances.analyzers.tree_cff import * 
+from CMGTools.VVResonances.analyzers.tree_cff import *
 
 #-------- SEQUENCE
 
-sequence = cfg.Sequence(coreSequence+[vvAna,vvSkimmer,vvTreeProducer])
+sequence = cfg.Sequence(coreSequence+[vvSkimmer,vvTreeProducer])
 
 
 from CMGTools.RootTools.samples.triggers_13TeV_Spring15 import *
@@ -84,20 +89,35 @@ triggerFlagsAna.triggerBits ={
     "ELE":triggers_1e_noniso,
     "HT800":triggers_HT800,
     "HT900":triggers_HT900,
-    "JJ":triggers_dijet_fat,  
-    "MET90":triggers_met90_mht90+triggers_metNoMu90_mhtNoMu90,
+    "JJ":triggers_dijet_fat,
     "MET120":triggers_metNoMu120_mhtNoMu120
 }
 
 
 #-------- HOW TO RUN
-test = 1
+test = 0
 if test==1:
     # test a single component, using a single thread.
-    selectedComponents = [BulkGravToWW_narrow_2500]
+    selectedComponents = [BulkGravToZZToZlepZhad_narrow_2000]
     for c in selectedComponents:
         c.files = c.files[:1]
         c.splitFactor = 1
+
+elif test==2:
+    # test a single component, using a single thread.
+    selectedComponents = [TTJets]
+elif test==3:
+    selectedComponents = [WJetsToLNu_HT2500toInf]
+    for c in selectedComponents:
+        c.files = c.files[:1]
+        c.splitFactor = 1
+else:
+    # full scale production
+    # split samples in a smarter way
+    from CMGTools.HToZZ4L.tools.configTools import configureSplittingFromTime, printSummary
+    configureSplittingFromTime(selectedComponents, 40, 3)  # means 40 ms per event, job to last 3h
+    # print summary of components to process
+    printSummary(selectedComponents)
 
 selectedComponents=autoAAA(selectedComponents)
 config=autoConfig(selectedComponents,sequence)

@@ -1,8 +1,8 @@
 from PhysicsTools.Heppy.analyzers.core.AutoHandle import AutoHandle
 from PhysicsTools.Heppy.physicsobjects.PhysicsObjects import Muon
-# RIC: 16/2/15 need to fix the Electron object first
-# from PhysicsTools.Heppy.physicsobjects.HTauTauElectron  import HTauTauElectron as Electron
 from PhysicsTools.Heppy.physicsobjects.Electron import Electron
+from PhysicsTools.Heppy.physicsobjects.Tau import Tau
+from PhysicsTools.HeppyCore.utils.deltar import deltaR2
 
 from CMGTools.H2TauTau.proto.analyzers.DiLeptonAnalyzer import DiLeptonAnalyzer
 from CMGTools.H2TauTau.proto.physicsobjects.DiObject import MuonElectron, DirectDiTau
@@ -34,6 +34,11 @@ class MuEleAnalyzer(DiLeptonAnalyzer):
             'std::vector<pat::Electron>'
         )
 
+        self.handles['taus'] = AutoHandle(
+                'slimmedTaus',
+                'std::vector<pat::Tau>'
+            )
+
         self.handles['otherLeptons'] = AutoHandle(
             'slimmedMuons',
             'std::vector<pat::Muon>'
@@ -53,6 +58,7 @@ class MuEleAnalyzer(DiLeptonAnalyzer):
             'slimmedMETs',
             'std::vector<pat::MET>'
         )
+
 
     def buildDiLeptons(self, cmgDiLeptons, event):
         '''Build di-leptons, associate best vertex to both legs,
@@ -128,37 +134,52 @@ class MuEleAnalyzer(DiLeptonAnalyzer):
         event.goodVertices = event.vertices
 
         result = super(MuEleAnalyzer, self).process(event)
+        event.isSignal = False
+        if result:
+            event.isSignal = True
+    
+        # trying to get a dilepton from the control region.
+        # it must have well id'ed and trig matched legs,
+        # di-lepton and tri-lepton veto must pass
+        result = self.selectionSequence(event, fillCounter=True,
+                                        leg1IsoCut=self.cfg_ana.looseiso1,
+                                        leg2IsoCut=self.cfg_ana.looseiso2)
+
+
 
         if result is False:
-            # trying to get a dilepton from the control region.
-            # it must have well id'ed and trig matched legs,
-            # di-lepton and tri-lepton veto must pass
-            result = self.selectionSequence(event, fillCounter=False,
-                                            leg1IsoCut=self.cfg_ana.looseiso1,
-                                            leg2IsoCut=self.cfg_ana.looseiso2)
-            if result is False:
-                # really no way to find a suitable di-lepton,
-                # even in the control region
-                return False
-            event.isSignal = False
-        else:
-            event.isSignal = True
+            # really no way to find a suitable di-lepton,
+            # even in the control region
+            return False
+        
+      
+        event.selectedTaus = [Tau(tau) for tau in self.handles['taus'].product() 
+                              if tau.pt() > 18. 
+                              and deltaR2(tau, event.leg1) > 0.25
+                              and deltaR2(tau, event.leg2) > 0.25]
+
+        for tau in event.selectedTaus:
+            tau.associatedVertex = event.goodVertices[0]
+
+        event.otherLeptons = event.selectedTaus[:]
 
         event.pfmet = self.handles['pfMET'].product()[0]
         event.puppimet = self.handles['puppiMET'].product()[0]
 
         return True
 
+    def crossKinematicSelection(self, diL, event):
+        return diL.leg1().pt() > self.cfg_ana.pt1_leading or diL.leg2().pt() > self.cfg_ana.pt2_leading
+
     def testLeg2ID(self, muon):
         '''Tight muon selection, no isolation requirement'''
-        return muon.muonID('POG_ID_Medium') and self.testVertex(muon)
+        return muon.muonID('POG_ID_Medium_ICHEP') and self.testVertex(muon)
 
     def testLeg2Iso(self, muon, isocut):
         '''Muon isolation to be implemented'''
         if isocut is None:
             isocut = self.cfg_ana.iso2
-
-        return muon.relIso(dBetaFactor=0.5, allCharged=0) < isocut
+        return muon.relIsoR(R=0.4, dBetaFactor=0.5, allCharged=0) < isocut
 
     def testVertex(self, lepton):
         '''Tests vertex constraints, for mu and electron'''
@@ -177,7 +198,7 @@ class MuEleAnalyzer(DiLeptonAnalyzer):
         '''
         if isocut is None:
             isocut = self.cfg_ana.iso2
-        return electron.relIso(dBetaFactor=0.5, allCharged=0) < isocut
+        return electron.relIsoR(R=0.3, dBetaFactor=0.5, allCharged=0) < isocut
 
     def otherLeptonVeto(self, leptons, otherLeptons, isocut=None):
         '''Second electron veto '''
@@ -198,10 +219,10 @@ class MuEleAnalyzer(DiLeptonAnalyzer):
         '''Second muon veto'''
         # count tight muons
         vLeptons = [muon for muon in otherLeptons if
-                    muon.muonID('POG_ID_Medium') and
+                    muon.muonID('POG_ID_Medium_ICHEP') and
                     self.testVertex(muon) and
                     self.testLegKine(muon, ptcut=10, etacut=2.4) and
-                    muon.relIsoR(R=0.3, dBetaFactor=0.5, allCharged=False) < 0.3]
+                    muon.relIsoR(R=0.4, dBetaFactor=0.5, allCharged=False) < 0.3]
 
         if len(vLeptons) > 1:
             return False
@@ -222,9 +243,9 @@ class MuEleAnalyzer(DiLeptonAnalyzer):
         if len(diLeptons) == 1:
             return diLeptons[0]
 
-        minRelIso = min(d.leg2().relIsoR(R=0.3, dBetaFactor=0.5, allCharged=0) for d in diLeptons)
+        minRelIso = min(d.leg2().relIsoR(R=0.4, dBetaFactor=0.5, allCharged=0) for d in diLeptons)
 
-        diLeps = [dil for dil in diLeptons if dil.leg2().relIsoR(R=0.3, dBetaFactor=0.5, allCharged=0) == minRelIso]
+        diLeps = [dil for dil in diLeptons if dil.leg2().relIsoR(R=0.4, dBetaFactor=0.5, allCharged=0) == minRelIso]
 
         if len(diLeps) == 1:
             return diLeps[0]

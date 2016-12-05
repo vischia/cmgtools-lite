@@ -43,11 +43,32 @@ triggerAna = cfg.Analyzer(
 triggerFlagsAna = cfg.Analyzer(
     TriggerBitAnalyzer, name="TriggerFlags",
     processName = 'HLT',
+    prescaleProcessName = 'PAT',
+    prescaleFallbackProcessName = 'RECO',
+    unrollbits = False,
+    saveIsUnprescaled = False,
+    checkL1prescale = False,
     triggerBits = {
         # "<name>" : [ 'HLT_<Something>_v*', 'HLT_<SomethingElse>_v*' ] 
     }
     )
+
 # Create flags for MET filter bits
+
+from CMGTools.TTHAnalysis.analyzers.badChargedHadronAnalyzer import badChargedHadronAnalyzer
+badChargedHadronAna = cfg.Analyzer(
+    badChargedHadronAnalyzer, name = 'badChargedHadronAna',
+    muons='slimmedMuons',
+    packedCandidates = 'packedPFCandidates',
+)
+
+from CMGTools.TTHAnalysis.analyzers.badMuonAnalyzer import badMuonAnalyzer
+badMuonAna = cfg.Analyzer(
+    badMuonAnalyzer, name = 'badMuonAna',
+    muons='slimmedMuons',
+    packedCandidates = 'packedPFCandidates',
+)
+
 eventFlagsAna = cfg.Analyzer(
     TriggerBitAnalyzer, name="EventFlags",
     processName = 'PAT',
@@ -57,6 +78,8 @@ eventFlagsAna = cfg.Analyzer(
         "HBHENoiseFilter" : [ "Flag_HBHENoiseFilter" ],
         "HBHENoiseIsoFilter" : [ "Flag_HBHENoiseIsoFilter" ],
         "CSCTightHaloFilter" : [ "Flag_CSCTightHaloFilter" ],
+        "CSCTightHalo2015Filter" : [ "Flag_CSCTightHalo2015Filter" ],
+        "globalTightHalo2016Filter" : [ "Flag_globalTightHalo2016Filter" ],
         "hcalLaserEventFilter" : [ "Flag_hcalLaserEventFilter" ],
         "EcalDeadCellTriggerPrimitiveFilter" : [ "Flag_EcalDeadCellTriggerPrimitiveFilter" ],
         "goodVertices" : [ "Flag_goodVertices" ],
@@ -174,7 +197,7 @@ lepAna = cfg.Analyzer(
     # electron isolation correction method (can be "rhoArea" or "deltaBeta")
     ele_isoCorr = "rhoArea" ,
     ele_effectiveAreas = "Spring15_25ns_v1" , #(can be 'Data2012' or 'Phys14_25ns_v1' or 'Spring15_25ns_v1' or 'Spring15_50ns_v1')
-    ele_tightId = "Cuts_2012" ,
+    ele_tightId = "Cuts_SPRING15_25ns_v1_ConvVetoDxyDz" ,
     # Mini-isolation, with pT dependent cone: will fill in the miniRelIso, miniRelIsoCharged, miniRelIsoNeutral variables of the leptons (see https://indico.cern.ch/event/368826/ )
     doMiniIsolation = False, # off by default since it requires access to all PFCandidates 
     packedCandidates = 'packedPFCandidates',
@@ -192,7 +215,7 @@ lepAna = cfg.Analyzer(
 from CMGTools.MonoXAnalysis.analyzers.monoJetSkimmer import monoJetSkimmer
 monoJetSkim = cfg.Analyzer(
     monoJetSkimmer, name='monoJetSkimmer',
-    jets      = "cleanJets", # jet collection to use
+    jets      = "cleanJetsAll", # jet collection to use
     jetPtCuts = [],          # e.g. [60,40,30,20] to require at least four jets with pt > 60,40,30,20 
     metCut = 0               # MET cut      
     )
@@ -208,6 +231,16 @@ monoJetCtrlLepSkim = cfg.Analyzer(
     ptCuts = [10],                # can give a set of pt cuts on the leptons
     )
 
+## number of FatJets (ak08) Skim
+from CMGTools.MonoXAnalysis.analyzers.monoJetCtrlFatJetSkimmer import monoJetCtrlFatJetSkimmer
+monoJetCtrlFatJetSkim = cfg.Analyzer(
+    monoJetCtrlFatJetSkimmer, name='monoJetCtrlFatJetSkimmer',
+    minFatJets = 0,
+    maxFatJets = 999,
+    idCut= '',
+    ptCuts     = [160],
+    )
+
 ## gamma+jets Skim
 from CMGTools.MonoXAnalysis.analyzers.gammaJetCtrlSkimmer import gammaJetCtrlSkimmer
 gammaJetCtrlSkim = cfg.Analyzer(
@@ -216,7 +249,7 @@ gammaJetCtrlSkim = cfg.Analyzer(
     minJets = 0,
     photonIdCut = 'photon.photonID("PhotonCutBasedIDLoose")',
     photonPtCut = 150,
-    jetPtCut = 100,
+    jetPtCut = 0,
     )
 
 ## Photon Analyzer (generic)
@@ -324,8 +357,8 @@ jetAna = cfg.Analyzer(
     recalibrateJets = True, # "MC", # True, False, 'MC', 'Data'
     applyL2L3Residual = True, # Switch to 'Data' when they will become available for Data
     recalibrationType = "AK4PFchs",
-    mcGT     = "76X_mcRun2_asymptotic_v12",
-    dataGT   = "76X_dataRun2_v15_Run2015D_25ns",
+    mcGT     = "Spring16_25nsV6_MC",
+    dataGT   = "Spring16_25nsV6_DATA",
     jecPath = "%s/src/CMGTools/RootTools/data/jec/" % os.environ['CMSSW_BASE'],
     shiftJEC = 0, # set to +1 or -1 to get +/-1 sigma shifts
     addJECShifts = False, # if true, add  "corr", "corrJECUp", and "corrJECDown" for each jet (requires uncertainties to be available!)
@@ -344,10 +377,11 @@ jetAna = cfg.Analyzer(
     type1METParams = { 'jetPtThreshold':15., 'skipEMfractionThreshold':0.9, 'skipMuons':True },
     )
 
+
 ## Fat Jets Analyzer (generic)
-from CMGTools.TTHAnalysis.analyzers.ttHFatJetAnalyzer import ttHFatJetAnalyzer
-ttHFatJetAna = cfg.Analyzer(
-    ttHFatJetAnalyzer, name = 'ttHFatJetAnalyzer',
+from CMGTools.MonoXAnalysis.analyzers.monoXFatJetAnalyzer import monoXFatJetAnalyzer
+monoXFatJetAna = cfg.Analyzer(
+    monoXFatJetAnalyzer, name = 'monoXFatJetAnalyzer',
     jetCol = 'slimmedJetsAK8',
     jetPt = 100.,
     jetEta = 2.4,
@@ -358,10 +392,16 @@ ttHFatJetAna = cfg.Analyzer(
     relaxJetId = False,  
     # v--- not implemented for AK8
     #doPuId = False, # Not commissioned in 7.0.X
-    #recalibrateJets = False,
-    #shiftJEC = 0, # set to +1 or -1 to get +/-1 sigma shifts
+    recalibrateJets = True,
+    applyL2L3Residual = True, # Switch to 'Data' when they will become available for Data
+    recalibrationType = "AK8PFchs",
+    mcGT     = "Spring16_25nsV6_MC",
+    dataGT   = "Spring16_25nsV6_DATA", # update with the new one when available in 8.0.X
+    jecPath = "%s/src/CMGTools/RootTools/data/jec/" % os.environ['CMSSW_BASE'],
+    shiftJEC = 0, # set to +1 or -1 to get +/-1 sigma shifts
+    addJECShifts = False, # if true, add  "corr", "corrJECUp", and "corrJECDown" for each jet (requires uncertainties to be available!)
+    rho = ('fixedGridRhoFastjetAll','',''),
     )
-
 
 # Secondary vertex analyzer
 from CMGTools.TTHAnalysis.analyzers.ttHSVAnalyzer import ttHSVAnalyzer
@@ -417,21 +457,23 @@ metNoHFAna = cfg.Analyzer(
     collectionPostFix = "NoHF",
     )
 
+
 # Core Event Analyzer (computes basic quantities like HT, dilepton masses)
 from CMGTools.TTHAnalysis.analyzers.ttHCoreEventAnalyzer import ttHCoreEventAnalyzer
 ttHCoreEventAna = cfg.Analyzer(
     ttHCoreEventAnalyzer, name='ttHCoreEventAnalyzer',
     maxLeps = 4, ## leptons to consider
     mhtForBiasedDPhi = "mhtJet40jvec",
-    jetForBiasedDPhi = "cleanJets",
+    jetForBiasedDPhi = "cleanJetsAll",
     jetPt = 40.,
     )
+
 
 # Electron and Photon calibrator (scale and smearings)
 def doECalElectronCorrections(sync=False,era="25ns"):
     global lepAna, monoJetCtrlLepSkim
     lepAna.doElectronScaleCorrections = {
-        'data' : 'EgammaAnalysis/ElectronTools/data/76X_16DecRereco_2015',
+        'data' : 'EgammaAnalysis/ElectronTools/data/ScalesSmearings/80X_ichepV1_2016_ele',
         'GBRForest': ('$CMSSW_BASE/src/CMGTools/RootTools/data/egamma_epComb_GBRForest_76X.root',
                       'gedelectron_p4combination_'+era),
         'isSync': sync
@@ -439,14 +481,14 @@ def doECalElectronCorrections(sync=False,era="25ns"):
 def doECalPhotonCorrections(sync=False):
     global photonAna, gammaJetCtrlSkimmer
     photonAna.doPhotonScaleCorrections = {
-        'data' : 'EgammaAnalysis/ElectronTools/data/76X_16DecRereco_2015',
+        'data' : 'EgammaAnalysis/ElectronTools/data/ScalesSmearings/80X_ichepV2_2016_pho',
         'isSync': sync
     }
 def doKalmanMuonCorrections(sync=False,smear="basic"):
     global lepAna
     lepAna.doMuonScaleCorrections = ( 'Kalman', {
-        'MC': 'MC_76X_13TeV',
-        'Data': 'DATA_76X_13TeV',
+        'MC': 'MC_80X_13TeV',
+        'Data': 'DATA_80X_13TeV',
         'isSync': sync,
         'smearMode':smear
     })
@@ -466,17 +508,20 @@ dmCoreSequence = [
     pdfwAna,
     vertexAna,
     lepAna,
+    jetAna,
     monoJetCtrlLepSkim,
+    metAna,
+    monoJetSkim,
     photonAna,
     tauAna,
     monoxTauAna,
     isoTrackAna,
-    jetAna,
-    metAna,
     ttHCoreEventAna,
-    ttHFatJetAna,
-    monoJetSkim,
+    monoXFatJetAna,
+    monoJetCtrlFatJetSkim,
     gammaJetCtrlSkim,
     triggerFlagsAna,
+    badChargedHadronAna,
+    badMuonAna,
     eventFlagsAna,
 ]

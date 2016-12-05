@@ -2,7 +2,7 @@ import os
 import ROOT
 
 from ROOT import TRandom3, TFile
-ROOT.gSystem.Load('libCondFormatsBTagObjects')
+ROOT.gSystem.Load('libCondToolsBTau')
 
 class BTagSF(object):
     '''Translate heppy run 1 BTagSF class to python, and update to 2012.
@@ -18,7 +18,7 @@ class BTagSF(object):
         self.btag_eff_oth = self.mc_eff_file.Get('btag_eff_oth')
 
         # b-tag SFs from POG
-        calib = ROOT.BTagCalibration("csvv2", os.path.expandvars("$CMSSW_BASE/src/CMGTools/H2TauTau/data/CSVv2.csv"))
+        calib = ROOT.BTagCalibration("csvv2", os.path.expandvars("$CMSSW_BASE/src/CMGTools/H2TauTau/data/CSVv2_ichep.csv"))
         
         op_dict = {
             'loose':0,
@@ -26,9 +26,18 @@ class BTagSF(object):
             'tight':2
         }
         print 'Booking b/c reader'
-        self.reader_bc = ROOT.BTagCalibrationReader(calib, op_dict[wp], "mujets", measurement)
+
+        v_sys = getattr(ROOT, 'vector<string>')()
+        v_sys.push_back('up')
+        v_sys.push_back('down')
+
+        # self.reader_bc = ROOT.BTagCalibrationReader(calib, op_dict[wp], "mujets", measurement)
+        self.reader_bc = ROOT.BTagCalibrationReader(op_dict[wp], measurement, v_sys)
+        self.reader_bc.load(calib, 0, 'mujets')
         print 'Booking light reader'
-        self.reader_light = ROOT.BTagCalibrationReader(calib, op_dict[wp], "incl", measurement)
+        # self.reader_light = ROOT.BTagCalibrationReader(calib, op_dict[wp], "incl", measurement)
+        self.reader_light = ROOT.BTagCalibrationReader(op_dict[wp], measurement, v_sys)
+        self.reader_light.load(calib, 2, 'incl')
 
     @staticmethod
     def getBTVJetFlav(flav):
@@ -52,9 +61,9 @@ class BTagSF(object):
 
     def getPOGSFB(self, pt, eta, flavor):
         if flavor in [4, 5]:
-            return self.reader_bc.eval(self.getBTVJetFlav(flavor), eta, pt)
+            return self.reader_bc.eval_auto_bounds('central', self.getBTVJetFlav(flavor), eta, pt)
 
-        return self.reader_light.eval(self.getBTVJetFlav(flavor), eta, pt)
+        return self.reader_light.eval_auto_bounds('central', self.getBTVJetFlav(flavor), eta, pt)
 
     def isBTagged(self, pt, eta, csv, jetflavor, is_data, csv_cut=0.8):
         jetflavor = abs(jetflavor)
@@ -65,14 +74,6 @@ class BTagSF(object):
             else:
                 return False
 
-        if jetflavor in [4, 5]:
-            if pt > 670.:
-                pt = 670.
-            if pt < 30.:
-                pt = 30.
-
-        if jetflavor not in [4, 5] and pt > 1000.:
-            pt = 1000.
 
         SFb = self.getPOGSFB(pt, abs(eta), jetflavor)
         eff_b = self.getMCBTagEff(pt, abs(eta), jetflavor)
@@ -112,4 +113,5 @@ if __name__ == '__main__':
 
     btag = BTagSF(12345)
     print 'created BTagSF instance'
+    print btag.isBTagged(25., 2.3, 0.9, 5, False)
 

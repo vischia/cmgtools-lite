@@ -56,7 +56,7 @@ class DataMCPlot(object):
     def __getitem__(self, name):
         return self.histosDict[name]
 
-    def readTree(self, file_name, tree_name='tree', verbose=False):
+    def readTree(self, file_name, tree_name='tree', verbose=False, friend_func=None):
         '''Cache files/trees'''
         if file_name in self.__class__._t_keeper:
             ttree = self.__class__._t_keeper[file_name]
@@ -67,6 +67,11 @@ class DataMCPlot(object):
             ttree = self.__class__._t_keeper[file_name] = tfile.Get(tree_name)
             if verbose:
                 print 'read tree', ttree, 'from file', file_name
+
+        if friend_func:
+            file_name = friend_func(file_name)
+            friend_tree = self.readTree(file_name, tree_name, verbose)
+            ttree.AddFriend(friend_tree)
 
         gROOT.cd()
 
@@ -79,7 +84,8 @@ class DataMCPlot(object):
             self.stack.Blind(minx, maxx)
         if self.nostack:
             for hist in self.nostack:
-                hist.Blind(minx, maxx)
+                if hist.style.drawAsData:
+                    hist.Blind(minx, maxx)
 
     def AddHistogram(self, name, histo, layer=0, legendLine=None, stack=True):
         '''Add a ROOT histogram, with a given name.
@@ -90,7 +96,8 @@ class DataMCPlot(object):
         self.histosDict[name] = tmp
         return tmp
 
-    def Group(self, groupName, namesToGroup, layer=None, style=None):
+    def Group(self, groupName, namesToGroup, layer=None, style=None, 
+              silent=False):
         '''Group all histos with names in namesToGroup into a single
         histo with name groupName. All histogram properties are taken
         from the first histogram in namesToGroup.
@@ -102,7 +109,8 @@ class DataMCPlot(object):
         for name in namesToGroup:
             hist = self.histosDict.get(name, None)
             if hist is None:
-                print 'warning, no histo with name', name
+                if not silent:
+                    print 'warning, no histo with name', name
                 continue
             if groupHist is None:
                 groupHist = hist.Clone(groupName)
@@ -256,7 +264,7 @@ class DataMCPlot(object):
                 continue
             stackedHists.append(hist)
         self._BuildStack(stackedHists, ytitle='Data/MC')
-        mcHist = self.stack.totalHist
+        mcHist = self.BGHist()
         self.dataOverMCHist = copy.deepcopy(dataHist)
         # self.dataOverMCHist.Add(mcHist, -1)
         self.dataOverMCHist.Divide(mcHist)
@@ -364,6 +372,12 @@ class DataMCPlot(object):
             self._BuildStack(self._SortedHistograms(), ytitle='Events')
         return self.stack
 
+    def BGHist(self):
+        return self.GetStack().totalHist
+
+    def SignalHists(self):
+        return [h for h in self.nostack if not h.style.drawAsData]
+
     def DrawStack(self, opt='',
                   xmin=None, xmax=None, ymin=None, ymax=None, print_norm=False,
                   scale_signal=''):
@@ -389,19 +403,23 @@ class DataMCPlot(object):
                         xmin=xmin, xmax=xmax,
                         ymin=ymin, ymax=ymax)
         if self.supportHist is None:
-            self.supportHist = self.stack.totalHist
+            self.supportHist = self.BGHist()
         if not self.axisWasSet:
             mxsup = self.supportHist.weighted.GetBinContent(
                 self.supportHist.weighted.GetMaximumBin()
             )
-            mxstack = self.stack.totalHist.weighted.GetBinContent(
-                self.stack.totalHist.weighted.GetMaximumBin()
+            mxstack = self.BGHist().weighted.GetBinContent(
+                self.BGHist().weighted.GetMaximumBin()
             )
             mx = max(mxsup, mxstack)
             if ymin is None:
                 ymin = 0.01
             if ymax is None:
                 ymax = mx*1.3
+                centrality = self.supportHist.weighted.GetRMS()/(self.supportHist.weighted.GetXaxis().GetXmax() - self.supportHist.weighted.GetXaxis().GetXmin())
+                if centrality > 0.15:
+                    ymax = mx*2.0
+
             self.supportHist.GetYaxis().SetRangeUser(ymin, ymax)
             self.axisWasSet = True
         for hist in self.nostack:
@@ -453,22 +471,26 @@ class DataMCPlot(object):
             hist.NormalizeToBinWidth()
 
     def WriteDataCard(self, filename=None, verbose=True, 
-                      mode='RECREATE', dir=None):
+                      mode='RECREATE', dir=None, postfix=''):
         '''Export current plot to datacard'''
         if not filename:
             filename = self.name+'.root'
 
         outf = TFile(filename, mode)
         if dir and outf.Get(dir):
-            print 'Directory', dir, 'already present in output file, recreate'
-            outf = TFile(filename, 'RECREATE')
+            print 'Directory', dir, 'already present in output file'
+            if any(outf.Get(dir+'/'+hist.name+postfix) for hist in self._SortedHistograms()):
+                print 'Recreating file because histograms already present'
+                outf = TFile(filename, 'RECREATE')
         if dir:
-            outf_dir = outf.mkdir(dir)
+            outf_dir = outf.Get(dir)
+            if not outf_dir:
+                outf_dir = outf.mkdir(dir)
             outf_dir.cd()
 
         for hist in self._SortedHistograms():
             'Writing', hist, 'as', hist.name
-            hist.weighted.Write(hist.name)
+            hist.weighted.Write(hist.name + postfix)
         outf.Write()
 
     def _BuildStack(self, hists, ytitle=None):

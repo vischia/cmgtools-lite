@@ -1,0 +1,62 @@
+
+## flat uncertainties
+
+lumi       : sig_.*|prompt_.*|rares_.*|convs   : .*                : 1.062
+trigeff    : sig_.*|prompt_.*|rares_.*|convs   : .*                : 1.04
+
+fakes      : fakes_.*                          : .*                : 1.3
+flips      : flips_.*                          : .*                : 1.3
+convs      : convs                             : .*2lss.*          : 1.5
+
+normWZ     : prompt_WZ                         : .*2lssJ0.*        : 1.13
+normWZ     : prompt_WZ                         : .*2lssJ1.*        : 1.19
+normZZH    : prompt_ZZH                        : .*                : 1.25
+normVVV    : prompt_VVV                        : .*                : 1.5
+normTTX    : prompt_ttX                        : .*                : 1.5
+theoTTV    : prompt_ttW|prompt_ttZ             : .*                : 1.15
+
+sigISR     : sig_.*                            : .*                : 1.1
+
+
+
+## shape uncertainties
+
+shapeWZ    : prompt_WZ                         : .*2lss.* : 1.15 : lnN_in_shape_bins : 1,10
+shapeWZ    : prompt_WZ                         : .*2lss.* : 1.25 : lnN_in_shape_bins : 2,3,4,5,6,7,8,11,12,13,14,15,16,17
+shapeWZ    : prompt_WZ                         : .*2lss.* : 1.50 : lnN_in_shape_bins : 9,18
+
+ewksub     : fakes_.*                          : .* : ewk        : templates
+
+#JES        : sig_.*|prompt_.*|rares_.*|convs   : .* : jec        : templates
+#MET        : sig_.*                            : .* : met        : templates
+
+#pileup     : sig_.*|prompt_.*|rares_.*|convs   : .* : puw        : templates
+
+#lepUnc     : sig_.*|prompt_.*|rares_.*|convs   : .* : lepSF      : templates
+#lepUncFS   : sig_.*                            : .* : lepSFFS    : templates
+
+#bTagUncHF  : prompt_.*|rares_.*|convs          : .* : bTagHF     : templates
+#bTagUncLF  : prompt_.*|rares_.*|convs          : .* : bTagLF     : templates
+#bTagUncFS  : sig_.*                            : .* : bTagFS     : templates
+
+
+## statistical uncertainties
+
+stat2lsssig   : sig_.*          : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+stat2lssWZ    : prompt_WZ       : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+stat2lssZZH   : prompt_ZZH      : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+stat2lssttW   : rares_ttW       : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+stat2lssttZ   : rares_ttZ       : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+stat2lssttX   : rares_ttX       : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+stat2lssVVV   : rares_VVV       : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+stat2lssconvs : convs           : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+stat2lssfakes : fakes_.*        : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+stat2lssflips : flips_.*        : .*2lss.* : 1.0 : stat_foreach_shape_bins : .*
+
+
+
+
+
+
+
+

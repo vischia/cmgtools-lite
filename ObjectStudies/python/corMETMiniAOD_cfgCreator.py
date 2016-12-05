@@ -39,7 +39,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 #configurable options =======================================================================
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 usePrivateSQlite=True #use external JECs (sqlite file)
-applyResiduals=False #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
+applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
 # Message Logger settings
@@ -79,6 +79,10 @@ if usePrivateSQlite:
                 tag = cms.string("JetCorrectorParametersCollection_"+options.jecEra+"_AK4PFchs"),
                 label= cms.untracked.string("AK4PFchs")
                 ),
+           cms.PSet(record  = cms.string("JetCorrectionsRecord"),
+                tag     = cms.string("JetCorrectorParametersCollection_"+options.jecEra+"_AK4PFPuppi"),
+                label   = cms.untracked.string("AK4PFPuppi")
+                ),
             )
                                )
     process.es_prefer_jec = cms.ESPrefer("PoolDBESSource",'jec')
@@ -93,6 +97,9 @@ process.jer = cms.ESSource("PoolDBESSource",CondDBSetup,
 ##                           connect = cms.string("sqlite:PhysicsTools/PatUtils/data/Fall15_25nsV2_MC.db"),
                            connect = cms.string('sqlite_file:'+os.path.expandvars(options.jerDBFile)),
                            toGet =  cms.VPSet(
+    #######
+    ### read the PFchs JER
+
     cms.PSet(
       record = cms.string('JetResolutionRcd'),
       #tag    = cms.string('JR_MC_PtResolution_Summer15_25nsV6_AK4PF'),
@@ -111,6 +118,29 @@ process.jer = cms.ESSource("PoolDBESSource",CondDBSetup,
       tag    = cms.string('JR_'+options.jerEra+'_MC_SF_AK4PFchs'),
       label  = cms.untracked.string('AK4PFchs')
       ),
+
+    #######
+    ### read the Puppi JER
+
+    cms.PSet(
+      record = cms.string('JetResolutionRcd'),
+      #tag    = cms.string('JR_MC_PtResolution_Summer15_25nsV6_AK4PF'),
+      tag    = cms.string('JR_'+options.jerEra+'_MC_PtResolution_AK4PFPuppi'),
+      label  = cms.untracked.string('AK4PFPuppi_pt')
+      ),
+    cms.PSet(
+      record = cms.string("JetResolutionRcd"),
+      #tag = cms.string("JR_MC_PhiResolution_Summer15_25nsV6_AK4PF"),
+      tag = cms.string('JR_'+options.jerEra+'_MC_PhiResolution_AK4PFPuppi'),
+      label= cms.untracked.string("AK4PFPuppi_phi")
+      ),
+    cms.PSet(
+      record = cms.string('JetResolutionScaleFactorRcd'),
+      #tag    = cms.string('JR_DATAMCSF_Summer15_25nsV6_AK4PFchs'),
+      tag    = cms.string('JR_'+options.jerEra+'_MC_SF_AK4PFPuppi'),
+      label  = cms.untracked.string('AK4PFPuppi')
+      ),
+
 
     ) )
 process.es_prefer_jer = cms.ESPrefer("PoolDBESSource",'jer')
@@ -165,6 +195,38 @@ if options.redoPuppi:
                                postfix="Puppi"
                                )
 
+#### THOSE ARE MANUAL REPLACEMENT - SOME BUG THERE AND NEED TO BE CORRECTED IN THE  PhysicsTools/PatAlgos/python/slimming/miniAOD_tools.py
+
+    process.pfMetT1Puppi.src = cms.InputTag("pfMetPuppi")
+
+######
+
+    process.corrPfMetType1Puppi.jetCorrLabel = cms.InputTag("ak4PFPuppiL1FastL2L3Corrector")
+    process.corrPfMetType1Puppi.jetCorrLabelRes = cms.InputTag("ak4PFPuppiL1FastL2L3ResidualCorrector")
+    process.corrPfMetType1Puppi.offsetCorrLabel = cms.InputTag("ak4PFPuppiL1FastjetCorrector")
+
+    process.basicJetsForMetPuppi.offsetCorrLabel = cms.InputTag("L1FastJet")
+    process.patJetCorrFactorsPuppi.payload = cms.string("AK4PFPuppi")
+
+    process.patPFMetPuppi.srcJetResPhi = cms.string('AK4PFPuppi_phi')
+    process.patPFMetPuppi.srcJetResPt = cms.string('AK4PFPuppi_pt')
+    process.patPFMetPuppi.srcJetSF = cms.string('AK4PFPuppi')
+
+#######
+
+    process.shiftedPatJetEnDownPuppi.jetCorrLabelUpToL3 = cms.InputTag("ak4PFPuppiL1FastL2L3Corrector")
+    process.shiftedPatJetEnDownPuppi.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFPuppiL1FastL2L3ResidualCorrector")
+
+    process.shiftedPatJetEnUpPuppi.jetCorrLabelUpToL3 = cms.InputTag("ak4PFPuppiL1FastL2L3Corrector")
+    process.shiftedPatJetEnUpPuppi.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFPuppiL1FastL2L3ResidualCorrector")
+
+    process.shiftedPatJetResDownPuppi.algo = cms.string('AK4PFPuppi')
+    process.shiftedPatJetResDownPuppi.algopt = cms.string('AK4PFPuppi_pt')
+
+    process.shiftedPatJetResUpPuppi.algo = cms.string('AK4PFPuppi')
+    process.shiftedPatJetResUpPuppi.algopt = cms.string('AK4PFPuppi_pt')
+
+#######
 
 #uncertainty file
 ###jecUncertaintyFile="$CMSSW_BASE/src/CMGTools/RootTools/data/jec/Summer15_50nsV4_DATA_UncertaintySources_AK4PFchs.txt"

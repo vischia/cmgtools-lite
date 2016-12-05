@@ -49,11 +49,11 @@ class H2TauTauTreeProducer(H2TauTauTreeProducerBase):
         self.bookGenInfo(self.tree)
         self.bookVBF(self.tree, 'vbf')
 
-        self.bookJet(self.tree, 'jet1', fill_extra=hasattr(self.cfg_ana, 'addMoreJetInfo') and self.cfg_ana.addMoreJetInfo)
-        self.bookJet(self.tree, 'jet2', fill_extra=hasattr(self.cfg_ana, 'addMoreJetInfo') and self.cfg_ana.addMoreJetInfo)
+        self.bookJet(self.tree, 'jet1', fill_extra=getattr(self.cfg_ana, 'addMoreJetInfo', False))
+        self.bookJet(self.tree, 'jet2', fill_extra=getattr(self.cfg_ana, 'addMoreJetInfo', False))
 
-        self.bookJet(self.tree, 'bjet1', fill_extra=hasattr(self.cfg_ana, 'addMoreJetInfo') and self.cfg_ana.addMoreJetInfo)
-        self.bookJet(self.tree, 'bjet2', fill_extra=hasattr(self.cfg_ana, 'addMoreJetInfo') and self.cfg_ana.addMoreJetInfo)
+        self.bookJet(self.tree, 'bjet1', fill_extra=getattr(self.cfg_ana, 'addMoreJetInfo', False))
+        self.bookJet(self.tree, 'bjet2', fill_extra=getattr(self.cfg_ana, 'addMoreJetInfo', False))
 
         self.var(self.tree, 'HT_allJets')
         self.var(self.tree, 'HT_jets')
@@ -65,8 +65,11 @@ class H2TauTauTreeProducer(H2TauTauTreeProducerBase):
         # self.bookParticle(self.tree, 'pfmet')
 
         self.bookGenParticle(self.tree, 'genboson')
+        self.bookTopPtReweighting(self.tree)
         self.bookExtraMetInfo(self.tree)
 
+        if hasattr(self.cfg_ana, 'TauSpinner') and self.cfg_ana.TauSpinner :
+            self.bookTauSpinner(self.tree)
 
     def process(self, event):
 
@@ -78,6 +81,9 @@ class H2TauTauTreeProducer(H2TauTauTreeProducerBase):
 
         if not eval(self.skimFunction):
             return False
+
+        # Top-reweighting need to come befor fillEvent, to include this into event weight
+        self.fillTopPtReweighting(self.tree, event)
 
         self.fillEvent(self.tree, event)
         self.fillDiLepton(self.tree, event.diLepton)
@@ -108,3 +114,7 @@ class H2TauTauTreeProducer(H2TauTauTreeProducerBase):
 
         if type(self) is H2TauTauTreeProducer:
             self.fillTree(event)
+
+        if hasattr(self.cfg_ana, 'TauSpinner') and self.cfg_ana.TauSpinner:
+            self.fillTauSpinner(self.tree, event)
+

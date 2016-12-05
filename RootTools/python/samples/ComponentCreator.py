@@ -19,15 +19,18 @@ class ComponentCreator(object):
          component.dataset_entries = self.getPrimaryDatasetEntries(dataset,user,pattern,useAAA=useAAA)
          return component
 
-    def makePrivateMCComponent(self,name,dataset,files,xSec=1):
+    def makePrivateMCComponent(self,name,dataset,files,xSec=1, prefix="auto"):
          if len(files) == 0:
             raise RuntimeError, "Trying to make a component %s with no files" % name
-         # prefix filenames with dataset unless they start with "/"
          dprefix = dataset +"/" if files[0][0] != "/" else ""
+         if prefix == "auto":
+            if (dprefix+files[0]).startswith("/store"): prefix = "root://eoscms.cern.ch//eos/cms"
+            else: prefix = ""
+         # prefix filenames with dataset unless they start with "/"
          component = cfg.MCComponent(
              dataset=dataset,
              name = name,
-             files = ['root://eoscms.cern.ch//eos/cms%s%s' % (dprefix,f) for f in files],
+             files = [''.join([prefix,dprefix,f]) for f in files],
              xSection = xSec,
              nGenEvents = 1,
              triggers = [],
@@ -165,7 +168,7 @@ class ComponentCreator(object):
             )
         component.json = json
         component.vetoTriggers = vetoTriggers
-        component.dataset_entries = self.getPrimaryDatasetEntries(dataset,user,pattern)
+        component.dataset_entries = self.getPrimaryDatasetEntries(dataset,user,pattern,run_range=run_range)
         component.dataset = dataset
         component.run_range = run_range
         return component
@@ -178,9 +181,9 @@ class ComponentCreator(object):
         if useAAA: mapping = 'root://cms-xrd-global.cern.ch/%s'
         return [ mapping % f for f in files]
 
-    def getPrimaryDatasetEntries(self, dataset, user, pattern, useAAA=False):
+    def getPrimaryDatasetEntries(self, dataset, user, pattern, useAAA=False, run_range=None):
         # print 'getting files for', dataset,user,pattern
-        ds = createDataset( user, dataset, pattern, True )
+        ds = createDataset( user, dataset, pattern, True, run_range=run_range )
         return ds.primaryDatasetEntries
 
     def getMyFiles(self, dataset, user, pattern, dbsInstance, useAAA=False):
