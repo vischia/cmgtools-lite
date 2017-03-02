@@ -17,7 +17,7 @@ frfiles  = THEFRFILES
 thejec   = "THEJEC" # name of the jec in the systs file
 themet   = "THEMET" # name of the met in the systs file
 q2acc    = "THEQ2ACC" # name of the q2acc in the systs file
-puw      = "THEPUW"   # name of the puw in the systs file
+#puw      = ""   # name of the puw in the systs file
 frjec    = THEFRJEC # central, jecUp, jecDn
 wvjec    = THEWVJEC # central, jecUp, jecDn
 frmet    = THEFRMET # pfMET, genMET
@@ -27,6 +27,8 @@ bkgdir   = "THEBKGDIR"
 mcadir   = "THEMCADIR"
 outdir   = "THEOUTDIR"
 themca   = "THEMCA"
+thecuts  = "THECUTS"
+thedummy = "THEDUMMY"
 thesyst  = "THESYST"
 #first    = "THECMDFIRST"
 #second   = "THECMDSECOND"
@@ -68,29 +70,38 @@ def cutOff(value, up, down):
 	if value < down: return down
 	return value
 
-def getWsum():
+def openTree():
 	global file, treedir, treename
+	fpath = None
+	for base in treedir.split(";"):
+		if   os.path.exists(base+"/"+file+"/"+treename+"/tree.root"):
+			fpath = base+"/"+file+"/"+treename+"/tree.root"
+			break
+		elif os.path.exists(base+"/"+file+"/"+treename+"/tree.root.url"):
+			fpath = open(base+"/"+file+"/"+treename+"/tree.root.url","r").readlines()[0].rstrip("\n")
+			break
+		else:
+			continue
+	if not fpath: return None,None
+	f = ROOT.TFile.Open(fpath, "read")
+	if not f: return None,None
+	t = f.Get("tree")
+	if not t: return None,None
+	if t.GetEntries() == 0: return None,None
+	return f,t
+
+def getWsum(cutvalue=20):
 	print "retrieving wsums"
 	wsums = [0,0,0,0,0]
 	for ff in file.split("+"):
-		fpath = None
-		if   os.path.exists(treedir+"/"+file+"/"+treename+"/tree.root"):
-			fpath = treedir+"/"+file+"/"+treename+"/tree.root"
-		elif os.path.exists(treedir+"/"+file+"/"+treename+"/tree.root.url"):
-			fpath = open(treedir+"/"+file+"/"+treename+"/tree.root.url","r").readlines()[0].rstrip("\n")
-		else:
-			continue
-		f = ROOT.TFile.Open(fpath, "read")
-		if not f: continue
-		t = f.Get("tree")
+		f,t = openTree()
 		if not t: continue
-		if t.GetEntries() == 0: continue
 		wsums[0] += t.GetEntries()
-		wsums[1] += t.GetEntries("nVert>20")
-		wsums[2] += t.GetEntries("nVert<20")
+		wsums[1] += t.GetEntries("nVert>="+str(cutvalue))
+		wsums[2] += t.GetEntries("nVert<" +str(cutvalue))
 		for evt in t:
-			wsums[3] += evt.LHEweight_wgt[4]/LHEweight_wgt[0]
-			wsums[4] += evt.LHEweight_wgt[9]/LHEweight_wgt[0]
+			wsums[3] += evt.LHEweight_wgt[4]/evt.LHEweight_wgt[0]
+			wsums[4] += evt.LHEweight_wgt[8]/evt.LHEweight_wgt[0]
 		f.Close()
 	return wsums
 	#return [total, upP, dnP, upW, dnW]
@@ -110,18 +121,18 @@ def doReweightingVariations(infile, outfile, procName, total = 0, up = 0, dn = 0
 	fDn = total/dn if dn>0 else 1.0
 	## loop over SR
 	for sr in range(1,hcn.GetNbinsX()+1):
-	    valZero = hcn.GetBinContent(sr)
-	    errZero = hcn.GetBinError  (sr)
-	    valUp   = hup.GetBinContent(sr)*fUp
-	    errUp   = hup.GetBinError  (sr)*fUp
-	    valDn   = hdn.GetBinContent(sr)*fDn
-	    errDn   = hdn.GetBinError  (sr)*fDn
-	    if valUp==0 or valDn==0 or valZero==0: continue
-	    sysUp  = valUp/valZero - 1.0;
-	    sysDn  = 1.0 - valZero/valDn
-	    #RMS    = sysUp*sysUp + sysDn*sysDn
-	    hOutUp.SetBinContent(sr, cutOff(1+sysUp if sysUp>0 else -1/(sysUp-1), 2, 0.5))
-	    hOutDn.SetBinContent(sr, cutOff(1+sysDn if sysDn>0 else -1/(sysDn-1), 2, 0.5))	
+		valZero = float(hcn.GetBinContent(sr)    )
+		errZero = float(hcn.GetBinError  (sr)    )
+		valUp   = float(hup.GetBinContent(sr)*fUp)
+		errUp   = float(hup.GetBinError  (sr)*fUp)
+		valDn   = float(hdn.GetBinContent(sr)*fDn)
+		errDn   = float(hdn.GetBinError  (sr)*fDn)
+		if valUp==0 or valDn==0 or valZero==0: continue
+		sysUp  = valUp/valZero - 1.0;
+		sysDn  = 1.0 - valZero/valDn
+		#RMS    = sysUp*sysUp + sysDn*sysDn
+		hOutUp.SetBinContent(sr, cutOff(1+sysUp if sysUp>0 else -1/(sysUp-1), 2, 0.5))
+		hOutDn.SetBinContent(sr, cutOff(1+sysDn if sysDn>0 else -1/(sysDn-1), 2, 0.5))	
 	hOutUp.Write()	
 	hOutDn.Write()	
 	hOutUp.SetDirectory(0)
@@ -129,11 +140,11 @@ def doReweightingVariations(infile, outfile, procName, total = 0, up = 0, dn = 0
 	ff.Close()
 	return [hOutUp, hOutDn]
 
-def doPuwVariation(infile, outfile, wsum):
-	## extracts relative correction for pileup according to susy recommendation
-	global sig, puw
-	print "running pileup variation"
-	return doReweightingVariations(infile, outfile, "x_sig_{s}_{j}_Up".format(s=sig, j=puw), wsum[0], wsum[1], wsum[2])
+##def doPuwVariation(infile, outfile, wsum):
+##	## extracts relative correction for pileup according to susy recommendation
+##	global sig, puw
+##	print "running pileup variation"
+##	return doReweightingVariations(infile, outfile, "x_sig_{s}_{j}_Up".format(s=sig, j=puw), wsum[0], wsum[1], wsum[2])
 
 
 def doQ2Variation(infile, outfile, wsum):
@@ -143,8 +154,8 @@ def doQ2Variation(infile, outfile, wsum):
 	return doReweightingVariations(infile, outfile, "x_sig_{s}_{j}_Up".format(s=sig, j=q2acc), wsum[3], wsum[4])
 
 
-def doMetVariation(infile, outfile, sig, jec, met, wVars, q2vars = [], puwvars = []):
-	global mass1, mass2, q2acc, puw
+def doMetVariation(infile, outfile, sig, jec, met, wVars, q2vars = []):
+	global mass1, mass2, q2acc
 	print "running met variation"
 	## retrieve all histograms
 	f = ROOT.TFile.Open(infile, "read")
@@ -159,9 +170,9 @@ def doMetVariation(infile, outfile, sig, jec, met, wVars, q2vars = [], puwvars =
 	final = pfMET.Clone("x_sig_{s}"       .format(s=sig       )); final.Reset()
 	metUp = pfMET.Clone("x_sig_{s}_{m}_Up".format(s=sig, m=met)); metUp.Reset()
 	metDn = pfMET.Clone("x_sig_{s}_{m}_Dn".format(s=sig, m=met)); metDn.Reset()
-	if len(puwvars)>0:
-		puwUp = pfMET.Clone("x_sig_{s}_{q}_Up".format(s=sig, q=puw)); puwUp.Reset()
-		puwDn = pfMET.Clone("x_sig_{s}_{q}_Dn".format(s=sig, q=puw)); puwDn.Reset()
+	#if len(puwvars)>0:
+	#	puwUp = pfMET.Clone("x_sig_{s}_{q}_Up".format(s=sig, q=puw)); puwUp.Reset()
+	#	puwDn = pfMET.Clone("x_sig_{s}_{q}_Dn".format(s=sig, q=puw)); puwDn.Reset()
 	if len(q2vars)>0:
 		q2Up = pfMET.Clone("x_sig_{s}_{q}_Up".format(s=sig, q=q2acc)); q2Up.Reset()
 		q2Dn = pfMET.Clone("x_sig_{s}_{q}_Dn".format(s=sig, q=q2acc)); q2Dn.Reset()
@@ -176,9 +187,9 @@ def doMetVariation(infile, outfile, sig, jec, met, wVars, q2vars = [], puwvars =
 		metDn.SetBinContent(bin, avg-diff)
 		jecUp.SetBinContent(bin, jecUp   .GetBinContent(bin)*sf)
 		jecDn.SetBinContent(bin, jecDn   .GetBinContent(bin)*sf)
-		if len(puwvars)>0:
-			puwUp.SetBinContent(bin, avg * puwvars[0].GetBinContent(bin))
-			puwDn.SetBinContent(bin, avg * puwvars[1].GetBinContent(bin))
+		#if len(puwvars)>0:
+		#	puwUp.SetBinContent(bin, avg * puwvars[0].GetBinContent(bin))
+		#	puwDn.SetBinContent(bin, avg * puwvars[1].GetBinContent(bin))
 		if len(q2vars)>0:
 			q2Up.SetBinContent(bin, avg * q2vars[0].GetBinContent(bin))
 			q2Dn.SetBinContent(bin, avg * q2vars[1].GetBinContent(bin))
@@ -195,9 +206,9 @@ def doMetVariation(infile, outfile, sig, jec, met, wVars, q2vars = [], puwvars =
 	metDn.Write()
 	jecUp.Write()
 	jecDn.Write()
-	if len(puwvars)>0:
-		puwUp.Write()
-		puwDn.Write()
+	#if len(puwvars)>0:
+	#	puwUp.Write()
+	#	puwDn.Write()
 	if len(q2vars)>0:
 		q2Up.Write()
 		q2Dn.Write()
@@ -222,31 +233,31 @@ sysbase = sysbase.replace("[[[","{").replace("]]]","}")
 mcabase = "sig_{{name}} : {file} : {xs} : {{ws}} ; Label=\"{{name}}\", isFastSim{{FRfiles}}".format(file=file, xs=xs)
 
 short = mass1 + "_" + mass2
-puwdir = outdir + "/puw/" + short
+#puwdir = outdir + "/puw/" + short
 q2dir  = outdir + "/q2/"  + short
 accdir = outdir + "/acc/" + short
 mpsdir = outdir + "/mps/" + short
 mkdir(mcadir)
 mkdir(outdir)
-mkdir(puwdir)
+#mkdir(puwdir)
 mkdir(q2dir )
 mkdir(accdir)
 mkdir(mpsdir)
 
-wsum = getWsum()
+wsum   = getWsum()
 
-## first do pileup variation
-if puw:
-	f = open(mcadir + "/mca_puw_"+name+".txt", "w")
-	f.write(mcabase.format(name=sig+"_central", ws=wstr                        , FRfiles=makeFakeRate(frfiles)) + "\n")
-	f.write(mcabase.format(name=sig+"_up"     , ws=makeWeight(wstr, "nVert>20"), FRfiles=makeFakeRate(frfiles)) + "\n")
-	f.write(mcabase.format(name=sig+"_down"   , ws=makeWeight(wstr, "nVert<20"), FRfiles=makeFakeRate(frfiles)) + "\n")
-	f.close()
-	mybase = cmdbase.format(MCA=mcadir + "/mca_puw_"+name+".txt", SYS="", O=outdir + "/puw/"+short)
-	cmd(mybase.replace("[[","{").replace("]]","}") + " --asimov")
-
-	## get central value of acceptance 
-	puwvars = doPuwVariation(puwdir+"/common/SR.input.root", puwdir+"/puw_SR.input.root", wsum)
+## first do pileup variation (simple)
+##if puw:
+##	f = open(mcadir + "/mca_puw_"+name+".txt", "w")
+##	f.write(mcabase.format(name=sig+"_central", ws=wstr                        , FRfiles=makeFakeRate(frfiles)) + "\n")
+##	f.write(mcabase.format(name=sig+"_up"     , ws=makeWeight(wstr, "nVert>20"), FRfiles=makeFakeRate(frfiles)) + "\n")
+##	f.write(mcabase.format(name=sig+"_down"   , ws=makeWeight(wstr, "nVert<20"), FRfiles=makeFakeRate(frfiles)) + "\n")
+##	f.close()
+##	mybase = cmdbase.format(MCA=mcadir + "/mca_puw_"+name+".txt", SYS="", O=outdir + "/puw/"+short)
+##	cmd(mybase.replace("[[","{").replace("]]","}") + " --asimov")
+##
+##	## get central value of acceptance 
+##	puwvars = doPuwVariation(puwdir+"/common/SR.input.root", puwdir+"/puw_SR.input.root", wsum)
 
 
 ## then do Q2 acceptance variation
@@ -255,9 +266,9 @@ if q2acc:
 	f = open(mcadir + "/mca_q2_"+name+".txt", "w")
 	f.write(mcabase.format(name=sig+"_central", ws=makeWeight(wstr, "LHEweight_wgt[0]/LHEweight_wgt[0]"), FRfiles=makeFakeRate(frfiles)) + "\n")
 	f.write(mcabase.format(name=sig+"_up"     , ws=makeWeight(wstr, "LHEweight_wgt[4]/LHEweight_wgt[0]"), FRfiles=makeFakeRate(frfiles)) + "\n")
-	f.write(mcabase.format(name=sig+"_down"   , ws=makeWeight(wstr, "LHEweight_wgt[9]/LHEweight_wgt[0]"), FRfiles=makeFakeRate(frfiles)) + "\n")
+	f.write(mcabase.format(name=sig+"_down"   , ws=makeWeight(wstr, "LHEweight_wgt[8]/LHEweight_wgt[0]"), FRfiles=makeFakeRate(frfiles)) + "\n")
 	f.close()
-	mybase = cmdbase.format(MCA=mcadir + "/mca_q2_"+name+".txt", SYS="", O=outdir + "/q2/"+short)
+	mybase = cmdbase.format(MCA=mcadir + "/mca_q2_"+name+".txt", CUTS=thedummy, SYS="", O=outdir + "/q2/"+short)
 	cmd(mybase.replace("[[","{").replace("]]","}") + " --asimov")
 
 	## get central value of acceptance 
@@ -277,12 +288,12 @@ if len(frmet)==2:
 		f.write(mcabase.format(name=sig+"_"+k+"_Up", ws=makeWeight(wstr,vals[0]), FRfiles=makeFakeRate(frfiles)) + "\n")
 		f.write(mcabase.format(name=sig+"_"+k+"_Dn", ws=makeWeight(wstr,vals[1]), FRfiles=makeFakeRate(frfiles)) + "\n")
 	f.close()
-	mybase = cmdbase.format(MCA=mcadir + "/mca_acc_"+name+".txt", SYS="", O=outdir + "/acc/"+short)
+	mybase = cmdbase.format(MCA=mcadir + "/mca_acc_"+name+".txt", CUTS=thecuts, SYS="", O=outdir + "/acc/"+short)
 	cmd(mybase.replace("[[","{").replace("]]","}") + " --asimov")
 	
 	
 	## get central value of acceptance 
-	doMetVariation(accdir + "/common/SR.input.root", accdir + "/acc_SR.input.root", sig, thejec, themet, wVars, q2vars, puwvars)
+	doMetVariation(accdir + "/common/SR.input.root", accdir + "/acc_SR.input.root", sig, thejec, themet, wVars, q2vars)
 
 
 ## prepare the proper job
@@ -301,13 +312,13 @@ for k,vals in wVars.iteritems():
 if len(q2vars)>0:
 	f.write(mcabase.format(name=sig+"_"+q2acc+"_Up+", ws=wstr, FRfiles=makeFakeRate(frfiles)) + ",SkipMe=True\n")
 	f.write(mcabase.format(name=sig+"_"+q2acc+"_Dn+", ws=wstr, FRfiles=makeFakeRate(frfiles)) + ",SkipMe=True\n")
-if len(puwvars)>0:
-	f.write(mcabase.format(name=sig+"_"+puw  +"_Up+", ws=wstr, FRfiles=makeFakeRate(frfiles)) + ",SkipMe=True\n")
-	f.write(mcabase.format(name=sig+"_"+puw  +"_Dn+", ws=wstr, FRfiles=makeFakeRate(frfiles)) + ",SkipMe=True\n")
+#if len(puwvars)>0:
+#	f.write(mcabase.format(name=sig+"_"+puw  +"_Up+", ws=wstr, FRfiles=makeFakeRate(frfiles)) + ",SkipMe=True\n")
+#	f.write(mcabase.format(name=sig+"_"+puw  +"_Dn+", ws=wstr, FRfiles=makeFakeRate(frfiles)) + ",SkipMe=True\n")
 f.close()
 
 ## run the proper job, which is actually just making the cards
-mybase = sysbase.format(MCA=mcadir + "/mca_full_"+name+".txt", SYS=thesyst, O=outdir+"/mps/"+short)
+mybase = sysbase.format(MCA=mcadir + "/mca_full_"+name+".txt", CUTS=thecuts, SYS=thesyst, O=outdir+"/mps/"+short)
 cmd(mybase.replace("[[","{").replace("]]","}") + " --ip x " + plugFiles([bkgdir+"/common/SR.input.root", accdir+"/acc_SR.input.root"]))
 
 

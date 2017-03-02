@@ -1,0 +1,44 @@
+# includes --> includes_M17/
+
+###### Data -----------------------------------------------------------
+#incl_data : + ; IncludeMca="susy-ewkino/2lss/includes_M17/data/mca_data_old.txt"
+#incl_data : + ; IncludeMca="susy-ewkino/2lss/includes_M17/data/mca_data_ICHEP.txt"
+incl_data : + ; IncludeMca="susy-ewkino/2lss/includes_M17/data/mca_data_M17.txt"
+
+######## WZ
+#prompt_WZ : WZTo3LNu : xsec*1.12 : (LepGood1_mcUCSXMatchId==0) && (LepGood2_mcUCSXMatchId==0) ; FakeRate="susy-ewkino/2lss/fakerate_standard.txt", FillColor=ROOT.kOrange, Label="WZ", NormSystematic=0.25
+prompt_WZ : WZTo3LNu_ext : 58.59 : (LepGood1_mcUCSXMatchId==0 || LepGood1_mcUCSXMatchId==1) && (LepGood2_mcUCSXMatchId==0 || LepGood2_mcUCSXMatchId==1) ;  FakeRate="susy-ewkino/2lss/fakerate_standard.txt", FillColor=ROOT.kOrange, Label="WZ", NormSystematic=0.25
+
+######## Fakes and flips -----------------------------------------------
+incl_fakes_data     : + ; IncludeMca="susy-ewkino/2lss/includes_M17/fakes/mca_fakes_data.txt"
+incl_flips_data     : + ; IncludeMca="susy-ewkino/2lss/includes_M17/flips/mca_flips_data.txt"
+
+## Prompt sub
+## -----------------------------------------------------------
+incl_promptsub      : + ; IncludeMca="susy-ewkino/2lss/includes_M17/mca_promptsub.txt"
+
+###### MC ---------------------------------------------------------------
+incl_prompt_ZZH : + ; IncludeMca="susy-ewkino/2lss/includes_M17/mca_prompt_ZZH.txt" 
+incl_convs  : + ; IncludeMca="susy-ewkino/2lss/includes_M17/mca_convs.txt"
+incl_prompt : + ; IncludeMca="susy-ewkino/2lss/includes_M17/mca_prompt.txt" 
+#incl_prompt : + ; IncludeMca="susy-ewkino/2lss/includes_M17/mca_prompt_old.txt" 
+#incl_convs  : + ; IncludeMca="susy-ewkino/2lss/includes_M17/mca_convs_old.txt"
+
+## Signals
+## -----------------------------------------------------------
+#sig_TChiNeuWZ_350_200+ : TChiNeuWZ_350_200 : xsec ; FillColor=ROOT.kRed, FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isprompt.txt", Label="WZ 350/200", NormSystematic=0.3
+#incl_sig_opt  : + ; IncludeMca="susy-ewkino/3l/includes_M17/mca_sig_opt.txt"
+#incl_sig_acc  : + ; IncludeMca="susy-ewkino/3l/includes_M17/mca_sig_acc.txt"
+#incl_sig_exc  : + ; IncludeMca="susy-ewkino/3l/includes_M17/mca_sig_exercise.txt"
+#incl_sig_fs   : + ; IncludeMca="susy-ewkino/3l/includes_M17/mca_sig_fullsim.txt"
+
+
+## Systematics
+## -----------------------------------------------------------
+incl_sys_btagHF   : + ; IncludeMca="susy-ewkino/2lss/includes_M17/sys/mca_sys_bTagHF.txt"
+incl_sys_btagLF   : + ; IncludeMca="susy-ewkino/2lss/includes_M17/sys/mca_sys_bTagLF.txt"
+incl_sys_jec      : + ; IncludeMca="susy-ewkino/2lss/includes_M17/sys/mca_sys_jec.txt"
+incl_sys_lep      : + ; IncludeMca="susy-ewkino/2lss/includes_M17/sys/mca_sys_lepSF.txt"
+incl_sys_puw      : + ; IncludeMca="susy-ewkino/2lss/includes_M17/sys/mca_sys_puw.txt"
+incl_sys_ewkM17   : + ; IncludeMca="susy-ewkino/2lss/includes_M17/sys/mca_sys_ewk_M17.txt"
+incl_sys_ewkMC    : + ; IncludeMca="susy-ewkino/2lss/includes_M17/sys/mca_sys_ewk_MC.txt"

@@ -21,6 +21,8 @@ parser.add_option("--hardZero",dest="hardZero", action="store_true", default=Fal
 parser.add_option("--ms",   dest="multiplesignals",  action="store_true", default=False, help="If specified, put all signals into one datacard")
 parser.add_option("--frFile"  ,dest="frFile"  , type="string", default=None, help="Path to the FR file to extract most probable FR for postfix.")
 parser.add_option("--frMap"   ,dest="frMap"   , type="string", default=None, help="Format of the name of the FR map in the FR file, put FL for el/mu")
+parser.add_option("--mpfr"    ,dest="mpfr"    , type="string", default=None, help="Region in the mpfr file to extract most probable FR bin")
+parser.add_option("--poisson" ,dest="poisson" , action="store_true", default=False, help="Put poisson errors in the histogram (not recommended)")
 
 (options, args) = parser.parse_args()
 options.weight = True
@@ -55,30 +57,35 @@ def takeFakesPredictionFromMC(mca,cut,pname,oldplots):
             print 'takeFakesPredictionFromMC: Fixing bin %d in %s: set to %f +/- %f (was %f +/- %f)'%(b,pname,oldplot.GetBinContent(b),oldplot.GetBinError(b),old[0],old[1])
 
 def getMostProbableFR():
-    global options
-    if not options.frFile or not os.path.exists(options.frFile) or not options.frMap: return 0.0
-    base = options.frMap
-    best = 0.; berr = 999999.; bin = (-1, -1); map = ""
-    f = ROOT.TFile.Open(options.frFile,"read")
-    for fl in ["el", "mu"]:
-        h = f.Get(base.replace("FL",fl))
-        if not h: continue
-        prob = 0.
-        err  = 999999.
-        pos  = (-1,-1)
-        for bx in range(1,h.GetNbinsX()+1):
-            for by in range(1,h.GetNbinsY()+1):
-                rel = float(h.GetBinError(bx, by))/h.GetBinContent(bx, by)
-                if rel < err:
-                    prob = h.GetBinContent(bx, by)
-                    err  = rel
-                    pos  = (bx, by)
-        if err < berr:
-            best = prob
-            berr = err
-            bin  = pos
-            map  = base.replace("FL",fl)
-    return best, berr*best, bin[0], bin[1], map
+	global options
+	mpfrFile = os.environ["CMSSW_BASE"]+"/src/CMGTools/TTHAnalysis/data/fakerate/mpfr_EWKino_M17.root"
+	if not os.path.exists(mpfrFile): return 0,0,-1,-1,""
+	f = ROOT.TFile.Open(mpfrFile,"read")
+	best = 0.; bin = (-1, -1); flav = None
+	flavs = ["el", "mu"] if options.mpfr=="2lss" else ["el","mu","tau"]
+	for fl in flavs:
+		h = f.Get("nFO_{R}_{F}".format(R=options.mpfr,F=fl))
+		if not h: continue
+		myb  = 0.
+		pos  = (-1,-1)
+		for bx in range(1,h.GetNbinsX()+1):
+			for by in range(1,h.GetNbinsY()+1):
+				if myb < float(h.GetBinContent(bx, by)):
+					myb = float(h.GetBinContent(bx, by))
+					pos = (bx, by)
+		if myb < best:
+		    best = myb
+		    bin  = pos
+		    flav = fl
+	f.Close()
+	if flav:
+		f  = ROOT.TFile.Open(options.frFile,"read")
+		h  = f.Get(options.frMap.replace("FL",flav))
+		pc = h.GetBinContent(bin[0], bin[1])
+		pe = h.GetBinError  (bin[0], bin[1])
+		f.Close()
+		return pc, pe, bin[0], bin[1], options.frMap.replace("FL",flav)
+	return 0, 0, -1, -1, ""
 
 def fixFakePredictionForZeroEvts(mca,cut,pname,oldplots):
     if pname=='data': return
@@ -143,6 +150,10 @@ for post in postfixes:
     for rep in report:
         if re.match(post[0],rep): post[1](mca,cuts.allCuts(),rep,report)
 if '_special_TT_foremptybins' in report: del report['_special_TT_foremptybins']
+
+if options.poisson:
+	for key,hist in report.iteritems():
+		hist.SetBinErrorOption(ROOT.TH1.kPoisson)
 
 if options.hardZero:
     for key,hist in report.iteritems():

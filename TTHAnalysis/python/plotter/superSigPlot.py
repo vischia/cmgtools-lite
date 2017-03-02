@@ -1,8 +1,8 @@
 import os, datetime, subprocess
 
-T="/mnt/t3nfs01/data01/shome/cheidegg/o/2017-01-27_ewkskims80X_M17_MERGED"
-O="/afs/cern.ch/user/c/cheidegg/www/heppy/2017-02-01_ewk80X_preapprovalSSR" # Do NOT give a trailing /
-L=36.5
+T="/mnt/t3nfs01/data01/shome/cheidegg/o/2017-02-25_ewkskims80X_M17_3l_bkg;/mnt/t3nfs01/data01/shome/cheidegg/o/2017-02-23_ewkskims80X_M17_3l_data"
+O="/afs/cern.ch/user/c/cheidegg/www/heppy/2017-02-26_ewk80X_reminiAODNewMCSSR" # Do NOT give a trailing /
+L=35.9
 
 ## below is the most crucial part: the base command for plotting
 ## give the usual command by which you would plot a, say, SR plot with mcPlots
@@ -12,7 +12,7 @@ L=36.5
 ## - {PLOTS} replacing the path of the plots file
 ## - select the plot 'SSR' (i.e. '--sP SSR' or via susy-interface: --selPlots SSR)
 ## - {FLAGS} a placeholder where to insert a flag if necessary
-base = "python susy-interface/plotmaker.py 3l 3lA "+T+" {OUTDIR} --plot {PLOTS} -l "+str(L)+" --make data --selPlots SSR -o SSR --flags '--perBin -X blinding --perBin --ratioOffset 0.03 --print C,png,pdf,txt --plotgroup rares_ttX+=rares_ttW --plotgroup rares_ttX+=rares_ttZ --plotgroup fakes_appldata+=promptsub {FLAGS}' --noFlags"
+base = "python susy-interface/plotmaker.py 3l 3lA '"+T+"' {OUTDIR} --plot {PLOTS} -l "+str(L)+" --make data --selPlots SSR -o SSR --flags '--perBin -X blinding --perBin --ratioOffset 0.03 --print C,png,pdf,txt --plotgroup rares_ttX+=rares_ttW --plotgroup rares_ttX+=rares_ttZ --plotgroup fakes_appldata+=promptsub {FLAGS} --neglist promptsub --showMCError' --noFlags"
 
 ## give bins expression (min, max) for what is to be used IN THE FINAL PLOT!
 bins  = [1,8]

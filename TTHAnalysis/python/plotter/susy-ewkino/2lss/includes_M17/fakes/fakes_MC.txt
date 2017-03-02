@@ -1,0 +1,13 @@
+fakes_mc : TTJets_DiLepton_ext + TTJets_DiLepton_part1 + TTJets_DiLepton_part2             : xsec :  FillColor=ROOT.kGray, Label="fakes",
+fakes_mc : TTJets_SingleLeptonFromTtbar +  TTJets_SingleLeptonFromTbar_ext  : xsec :  FillColor=ROOT.kGray, Label="fakes"
+fakes_mc : TTJets_SingleLeptonFromT + TTJets_SingleLeptonFromT_ext: xsec :  FillColor=ROOT.kGray, Label="fakes"
+fakes_mc : DYJetsToLL_M10to50  TTJets_SingleLeptonFromTbar_ext        : xsec :  FillColor=ROOT.kGray, Label="fakes"
+fakes_mc : DYJetsToLL_M50              : xsec :  FillColor=ROOT.kGray, Label="fakes"
+fakes_mc : WJetsToLNu_LO               : xsec :  FillColor=ROOT.kGray, Label="fakes"
+fakes_mc : WWTo2L2Nu                   : xsec :  FillColor=ROOT.kGray, Label="fakes"
+fakes_mc : TBar_tch_powheg             : xsec :  FillColor=ROOT.kGray, Label="fakes"
+fakes_mc : T_tch_powheg                : xsec :  FillColor=ROOT.kGray, Label="fakes"
+
+#fakes_mc : TToLeptons_sch              : xsec :  FillColor=ROOT.kGray, Label="fakes"
+#fakes_mc : T_tWch                      : xsec :  FillColor=ROOT.kGray, Label="fakes"
+#fakes_mc : TBar_tWch                   : xsec :  FillColor=ROOT.kGray, Label="fakes"

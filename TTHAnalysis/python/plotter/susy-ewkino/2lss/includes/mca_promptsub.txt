@@ -12,7 +12,7 @@ promptsub : GGHZZ4L  : -1*xsec : LepGood1_isMatchRightCharge && LepGood2_isMatch
 ################################################
 promptsub : TTWToLNu_ext1 + TTWToLNu_ext2_part1 + TTWToLNu_ext2_part2 : -1*xsec : LepGood1_isMatchRightCharge && LepGood2_isMatchRightCharge ; FakeRate="susy-ewkino/2lss/fakeRate-2lss-frdata_prompt.txt" 
 promptsub : TTZToLLNuNu                 : -1*xsec : LepGood1_isMatchRightCharge && LepGood2_isMatchRightCharge ; FakeRate="susy-ewkino/2lss/fakeRate-2lss-frdata_prompt.txt" 
-promptsub : TTLLJets_m1to10             : 0.0493 : LepGood1_isMatchRightCharge && LepGood2_isMatchRightCharge ; FakeRate="susy-ewkino/2lss/fakeRate-2lss-frdata_prompt.txt" 
+promptsub : TTLLJets_m1to10             : -1*0.0493 : LepGood1_isMatchRightCharge && LepGood2_isMatchRightCharge ; FakeRate="susy-ewkino/2lss/fakeRate-2lss-frdata_prompt.txt" 
 promptsub : TTJets_DiLepton_part1 + TTJets_DiLepton_part2 : -1*xsec : LepGood1_isMatchRightCharge && LepGood2_isMatchRightCharge ; FakeRate="susy-ewkino/2lss/fakeRate-2lss-frdata_prompt.txt" 
 promptsub : TTJets_SingleLeptonFromT_part1 +  TTJets_SingleLeptonFromT_part2 + TTJets_SingleLeptonFromT_part3 : -1*xsec : LepGood1_isMatchRightCharge && LepGood2_isMatchRightCharge ; FakeRate="susy-ewkino/2lss/fakeRate-2lss-frdata_prompt.txt" 
 promptsub : TTJets_SingleLeptonFromTbar : -1*xsec : LepGood1_isMatchRightCharge && LepGood2_isMatchRightCharge ; FakeRate="susy-ewkino/2lss/fakeRate-2lss-frdata_prompt.txt" 

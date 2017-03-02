@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 #from tree2yield import *
-from CMGTools.TTHAnalysis.plotter.tree2yield import *
-from CMGTools.TTHAnalysis.plotter.projections import *
-from CMGTools.TTHAnalysis.plotter.figuresOfMerit import FOM_BY_NAME
+#from CMGTools.TTHAnalysis.plotter.tree2yield import *
+#from CMGTools.TTHAnalysis.plotter.projections import *
+#from CMGTools.TTHAnalysis.plotter.figuresOfMerit import FOM_BY_NAME
+from tree2yield import *
+from projections import *
+from figuresOfMerit import FOM_BY_NAME
 import pickle, re, random, time
 
 #_T0 = long(ROOT.gSystem.Now())

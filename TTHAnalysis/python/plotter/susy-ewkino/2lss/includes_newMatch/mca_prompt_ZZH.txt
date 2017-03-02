@@ -1,0 +1,6 @@
+######### ZZH
+################################################
+prompt_ZZH         : ZZTo4L_part1 + ZZTo4L_part2   : xsec : LepGood1_mcUCSXMatchId==0 && LepGood2_mcUCSXMatchId==0 ; FillColor=ROOT.kGreen+1,  Label="ZZ/H",   NormSystematic=0.25
+prompt_ZZH         : VHToNonbb  : xsec : LepGood1_mcUCSXMatchId==0 && LepGood2_mcUCSXMatchId==0 ; FillColor=ROOT.kGreen+1, Label="ZZ/H", NormSystematic=0.25
+prompt_ZZH         : GGHZZ4L  : xsec : LepGood1_mcUCSXMatchId==0 && LepGood2_mcUCSXMatchId==0 ; FillColor=ROOT.kGreen+1, Label="ZZ/H", NormSystematic=0.25
+

@@ -19,6 +19,11 @@ def prepareJob(mm, name, mp, baseSig, baseSys, binning, bkgpath, outpath, xslist
 	source   = open("susy-interface/scripts/job_scanmaker.py", "r").readlines()
 	tmpfile  = open(mm.srcpath +"/submitJob_"+ name +".py", "w")
 
+	thedummy = mm.tmppath +"/cuts_dummy.txt"
+	fdummy   = open(thedummy, "w")
+	fdummy.write("alwaystrue : 1")
+	fdummy.close()
+
 	for line in source:
 		line = line.replace("THENAME"      , name                                                    )
 		line = line.replace("THESIGNAL"    , sig                                                     )
@@ -36,7 +41,7 @@ def prepareJob(mm, name, mp, baseSig, baseSys, binning, bkgpath, outpath, xslist
 		line = line.replace("THEJEC"       , mm.getVariable("jec","")                                )
 		line = line.replace("THEMET"       , mm.getVariable("met","")                                )
 		line = line.replace("THEQ2ACC"     , mm.getVariable("q2acc","")                              )
-		line = line.replace("THEPUW"       , mm.getVariable("puw","")                                )
+		#line = line.replace("THEPUW"       , mm.getVariable("puw","")                                )
 		line = line.replace("THEFRJEC"     , "["+",".join(["\""+f+"\"" for f in mm.getVariable("frFilesFSJec","").split(";")])+"]")
 		line = line.replace("THEWVJEC"     , "["+",".join(["\""+f+"\"" for f in mm.getVariable("wVarsFSJec"  ,"").split(";")])+"]")
 		line = line.replace("THEFRMET"     , "["+",".join(["\""+f+"\"" for f in mm.getVariable("frFilesFSMet","").split(";")])+"]")
@@ -46,6 +51,8 @@ def prepareJob(mm, name, mp, baseSig, baseSys, binning, bkgpath, outpath, xslist
 		line = line.replace("THEBKGDIR"    , bkgpath                                           )
 		line = line.replace("THEOUTDIR"    , outpath                                           )
 		line = line.replace("THEMCA"       , mm.getVariable("mcafile","")                      )
+		line = line.replace("THECUTS"      , mm.getVariable("cutfile","")                      )
+		line = line.replace("THEDUMMY"     , thedummy                                          )
 		line = line.replace("THESYST"      , mm.getVariable("sysfile","")                      )
 		line = line.replace("THEBASESIG"   , baseSig                                           )
 		line = line.replace("THEBASESYS"   , baseSys                                           )
@@ -70,10 +77,11 @@ parser.add_option("--m1"          , dest="mass1"      , type="int"         , def
 parser.add_option("--m2"          , dest="mass2"      , type="int"         , default=None , help="Only run signal points with this value as second mass");
 
 baseBkg = "python makeShapeCardsSusy.py {MCA} {CUTS} \"{EXPR}\" \"{BINS}\" -o SR --bin {TAG} {T} --tree {TREENAME} {MCCS} {MACROS} --s2v -f -l {LUMI} --od {O} {FRIENDS} {FLAGS} {OVERFLOWCUTS}"
-baseSig = "python makeShapeCardsSusy.py [[[MCA]]] {CUTS} \\\"{EXPR}\\\" \\\"{BINS}\\\" [[[SYS]]] -o SR --bin {TAG} {T} --tree {TREENAME} {MCCS} {MACROS} --s2v -f -l {LUMI} --od [[[O]]] {FRIENDS} {FLAGS} {OVERFLOWCUTS} {POSTFIX}"
+baseSig = "python makeShapeCardsSusy.py [[[MCA]]] [[[CUTS]]] \\\"{EXPR}\\\" \\\"{BINS}\\\" [[[SYS]]] -o SR --bin {TAG} {T} --tree {TREENAME} {MCCS} {MACROS} --s2v -f -l {LUMI} --od [[[O]]] {FRIENDS} {FLAGS} {OVERFLOWCUTS} {POSTFIX}"
 (options, args) = parser.parse_args()
 options         = maker.splitLists(options)
 options.models  = func.splitList(options.models)
+print options.sfsfriends, options.srfsfriends
 mm              = maker.Maker("scanmaker", baseBkg, args, options, parser.defaults)
 mm.loadModels()
 
@@ -183,11 +191,12 @@ if not options.bkgOnly:
 
 				## looping over masspoints
 				for iiii,mp in enumerate(mps):
-					thebasesig = mm.makeCmd([mm.getVariable("cutfile",""), mm.getVariable("expr",""), b, scenario.replace("/","_"), mm.treedirs, mm.getVariable("treename","treeProducerSusyMultilepton"), mccs, macros, mm.getVariable("lumi","12.9"), friends, flagsSig, func.getCut(mm.getVariable("firstCut","alwaystrue"), mm.getVariable("expr",""), mm.getVariable("bins","")), ""])
-					thebasesys = mm.makeCmd([mm.getVariable("cutfile",""), mm.getVariable("expr",""), b, scenario.replace("/","_"), mm.treedirs, mm.getVariable("treename","treeProducerSusyMultilepton"), mccs, macros, mm.getVariable("lumi","12.9"), friends, flagsSys, func.getCut(mm.getVariable("firstCut","alwaystrue"), mm.getVariable("expr",""), mm.getVariable("bins","")), options.postfix])
+					thebasesig = mm.makeCmd([mm.getVariable("expr",""), b, scenario.replace("/","_"), mm.treedirs, mm.getVariable("treename","treeProducerSusyMultilepton"), mccs, macros, mm.getVariable("lumi","12.9"), friends, flagsSig, func.getCut(mm.getVariable("firstCut","alwaystrue"), mm.getVariable("expr",""), mm.getVariable("bins","")), ""])
+					thebasesys = mm.makeCmd([mm.getVariable("expr",""), b, scenario.replace("/","_"), mm.treedirs, mm.getVariable("treename","treeProducerSusyMultilepton"), mccs, macros, mm.getVariable("lumi","12.9"), friends, flagsSys, func.getCut(mm.getVariable("firstCut","alwaystrue"), mm.getVariable("expr",""), mm.getVariable("bins","")), options.postfix])
 					thecmd, cardpath = prepareJob(mm, scenario.replace("/", "_")+"_mp_"+mp[2], mp, thebasesig, thebasesys, b, bkgDir, myDir, xslist, options)
 					mm.registerCmd(thecmd, scenario.replace("/", "_")+"_mp_"+mp[2],False,10)
 					cards.append(cardpath)
+					break
 	mm.runJobs()
 	mm.clearJobs()
 
