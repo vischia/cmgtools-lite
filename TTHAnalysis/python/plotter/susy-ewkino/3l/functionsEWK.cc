@@ -66,6 +66,7 @@ int hasPromptLight(int nLep, int lep1pdgId, int lep1mcUCSX, int lep2pdgId, int l
     if(abs(lep3pdgId)<15 && !(lep3mcUCSX==0 || lep3mcUCSX==1)) return 0;
     if(nLep == 3                                             ) return 1;
     if(abs(lep4pdgId)<15 && !(lep4mcUCSX==0 || lep4mcUCSX==1)) return 0;
+    return 0;
 }
 
 int hasPromptTau(int nLep, int lep1pdgId, int lep1mcUCSX, int lep2pdgId, int lep2mcUCSX, int lep3pdgId = 0, int lep3mcUCSX = 0, int lep4pdgId = 0, int lep4mcUCSX = 0) {
@@ -75,6 +76,7 @@ int hasPromptTau(int nLep, int lep1pdgId, int lep1mcUCSX, int lep2pdgId, int lep
     if(abs(lep3pdgId)==15 && !(lep3mcUCSX==0 || lep3mcUCSX==1)) return 0;
     if(nLep == 3                                              ) return 1;
     if(abs(lep4pdgId)==15 && !(lep4mcUCSX==0 || lep4mcUCSX==1)) return 0;
+    return 0;
 }
 
 int isGoodFake(float pt, int isTight) {
@@ -114,12 +116,12 @@ int allTightTau(int nLep, int l1pdgId, int l1isTight, int l2pdgId, int l2isTight
 }
 
 int tightChargeCut(int nLep, int l1pdgId, int l1tightCharge, int l2pdgId, int l2tightCharge, int l3pdgId = 0, int l3tightCharge = 0, int l4pdgId = 0, int l4tightCharge = 0) { 
-    if((abs(l1pdgId)==11 && l1tightCharge<2) || (abs(l1pdgId)==13 && l1tightCharge<1)) return 0;
-    if((abs(l2pdgId)==11 && l2tightCharge<2) || (abs(l2pdgId)==13 && l2tightCharge<1)) return 0;
+    if((abs(l1pdgId)==11 && l1tightCharge<2) || (abs(l1pdgId)==13 && l1tightCharge<2)) return 0;
+    if((abs(l2pdgId)==11 && l2tightCharge<2) || (abs(l2pdgId)==13 && l2tightCharge<2)) return 0;
     if(nLep == 2                                                                     ) return 1;
-    if((abs(l3pdgId)==11 && l3tightCharge<2) || (abs(l3pdgId)==13 && l3tightCharge<1)) return 0;
+    if((abs(l3pdgId)==11 && l3tightCharge<2) || (abs(l3pdgId)==13 && l3tightCharge<2)) return 0;
     if(nLep == 3                                                                     ) return 1;
-    if((abs(l4pdgId)==11 && l4tightCharge<2) || (abs(l4pdgId)==13 && l4tightCharge<1)) return 0;
+    if((abs(l4pdgId)==11 && l4tightCharge<2) || (abs(l4pdgId)==13 && l4tightCharge<2)) return 0;
     return 1;
 }
 

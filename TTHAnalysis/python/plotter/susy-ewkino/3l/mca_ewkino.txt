@@ -22,8 +22,8 @@ incl_data      : + ; IncludeMca="susy-ewkino/3l/includes/mca_data_M17_reminiAOD.
 
 ## WZ (to keep the order)
 ## -----------------------------------------------------------
-prompt_WZ : WZTo3LNu : 1.09*xsec ; FillColor=ROOT.kOrange, FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isprompt.txt", Label="WZ", NormSystematic=0.3
-bare_WZ   : WZTo3LNu : 1.09*xsec ; FillColor=ROOT.kOrange, FakeRate="susy-ewkino/3l/fakerate_standard_central.txt", Label="WZ", NormSystematic=0.3
+prompt_WZ : WZTo3LNu : 1.12*xsec ; FillColor=ROOT.kOrange, FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isprompt.txt", Label="WZ", NormSystematic=0.3
+bare_WZ   : WZTo3LNu : 1.12*xsec ; FillColor=ROOT.kOrange, FakeRate="susy-ewkino/3l/fakerate_standard_central.txt", Label="WZ", NormSystematic=0.3
 
 ## Backgrounds
 ## -----------------------------------------------------------

@@ -3,7 +3,6 @@ prompt_ZZH : GGHZZ4L                     : xsec ; FillColor=ROOT.kGreen+1 , Fake
 prompt_ZZH : ZZTo4L                      : xsec ; FillColor=ROOT.kGreen+1 , FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isprompt.txt", Label="ZZ/H", NormSystematic=0.25
 convs      : TTGJets                     : xsec ; FillColor=ROOT.kOrange+7, FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isconv.txt"  , Label="Conversions", NormSystematic=0.25
 convs      : ZGTo2LG                     : xsec ; FillColor=ROOT.kOrange+7, FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isconv.txt"  , Label="Conversions", NormSystematic=0.25
-convs      : TTGJets                     : xsec ; FillColor=ROOT.kOrange+7, FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isprompt.txt", Label="Conversions", NormSystematic=0.25
 convs      : ZGTo2LG                     : xsec ; FillColor=ROOT.kOrange+7, FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isprompt.txt", Label="Conversions", NormSystematic=0.25
 rares_VVV  : WWW                         : xsec ; FillColor=ROOT.kRed+1   , FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isprompt.txt", Label="VVV", NormSystematic=0.5
 rares_VVV  : WWZ                         : xsec ; FillColor=ROOT.kRed+1   , FakeRate="susy-ewkino/3l/fakerate_standard_central.txt\,susy-ewkino/3l/fakerate_load_isprompt.txt", Label="VVV", NormSystematic=0.5
