@@ -454,6 +454,16 @@ from CMGTools.TTHAnalysis.tools.higgsDiffRegressionTTH import HiggsDiffRegressio
 from CMGTools.TTHAnalysis.tools.higgsDiffRegressionTTH_new import HiggsDiffRegressionTTH_new
 from CMGTools.TTHAnalysis.tools.higgsDiffRegressionTTH_3l import HiggsDiffRegressionTTH_3l
 from CMGTools.TTHAnalysis.tools.higgsDiffRegressionTTH_reduced import HiggsDiffRegressionTTH_reduced
+#from CMGTools.TTHAnalysis.tools.adding_dnn import Adding_dnn
+from CMGTools.TTHAnalysis.tools.higgsDiffRegressionTTH_reduced_3l import HiggsDiffRegressionTTH_reduced_3l
+
+higgsDiffRegressionTTH_reduced_3l = lambda : HiggsDiffRegressionTTH_reduced_3l(label='Hreco_',
+                                                                               variations=[ 'jes%s'%v for v in jecGroups] + ['jer%s'%x for x in ['barrel','endcap1','endcap2highpt','endcap2lowpt' ,'forwardhighpt','forwardlowpt' ]  ]  + ['HEM'],
+                                                                               btagDeepCSVveto = 'M')
+
+#adding_dnn = lambda : Adding_dnn(label='Hreco_',
+#                                variations=[ 'jes%s'%v for v in jecGroups] + ['jer%s'%x for x in ['barrel','endcap1','endcap2highpt','endcap2lowpt' ,'forwardhighpt','forwardlowpt' ]  ]  + ['HEM'],
+#                                btagDeepCSVveto = 'M')
 
 higgsDiffRegressionTTH = lambda : HiggsDiffRegressionTTH(label='Hreco_',
                                                          variations=[ 'jes%s'%v for v in jecGroups] + ['jer%s'%x for x in ['barrel','endcap1','endcap2highpt','endcap2lowpt' ,'forwardhighpt','forwardlowpt']  ]  + ['HEM'],
