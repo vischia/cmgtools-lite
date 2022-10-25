@@ -5,9 +5,9 @@ ttZ   : TTJets_SingleLeptonFromT+TTJets_SingleLeptonFromT_ext    : xsec : (LepGo
 ttZ   : TTJets_SingleLeptonFromTbar+TTJets_SingleLeptonFromTbar_ext : xsec : (LepGood1_mcUCSXMatchId == 0 || LepGood1_mcUCSXMatchId == 1) && (LepGood2_mcUCSXMatchId == 0 || LepGood2_mcUCSXMatchId == 1) && (LepGood3_mcUCSXMatchId == 0 || LepGood3_mcUCSXMatchId == 1) ; FillColor=ROOT.kGreen-6, Label="ttZ/G* (internal)"
 
 # 0.648657*
-ZG :  ZGTo2LG  : xsec : (LepGood1_mcUCSXMatchId == 0 || LepGood1_mcUCSXMatchId == 1 || LepGood1_mcUCSXMatchId == 4 ) && (LepGood2_mcUCSXMatchId == 0 || LepGood2_mcUCSXMatchId == 1 || LepGood2_mcUCSXMatchId == 4) && (LepGood3_mcUCSXMatchId == 0 || LepGood3_mcUCSXMatchId == 1 || LepGood3_mcUCSXMatchId == 4) ; FillColor=ROOT.kOrange-3, Label="ZG"
+ZG :  ZGTo2LG  : xsec  ; FillColor=ROOT.kOrange-3, Label="ZG"
 # 1.31819*
-ZZ : ZZTo4L   : xsec : (LepGood1_mcUCSXMatchId == 0 || LepGood1_mcUCSXMatchId == 1 || LepGood1_mcUCSXMatchId == 4 ) && (LepGood2_mcUCSXMatchId == 0 || LepGood2_mcUCSXMatchId == 1 || LepGood2_mcUCSXMatchId == 4) && (LepGood3_mcUCSXMatchId == 0 || LepGood3_mcUCSXMatchId == 1 || LepGood3_mcUCSXMatchId == 4) ;  FillColor=ROOT.kCyan+1,  Label="ZZ*"
+ZZ : ZZTo4L   : xsec  ;  FillColor=ROOT.kCyan+1,  Label="ZZ*"
 
 #WZ    : WZTo3LNu : 1.12*xsec : (LepGood1_mcUCSXMatchId == 0 || LepGood1_mcUCSXMatchId == 1) && (LepGood2_mcUCSXMatchId == 0 || LepGood2_mcUCSXMatchId == 1) && (LepGood3_mcUCSXMatchId == 0 || LepGood3_mcUCSXMatchId == 1) ; FillColor=ROOT.kOrange
 WZ    : WZTo3LNu_ext : 0.672*58.59 : (LepGood1_mcUCSXMatchId == 0 || LepGood1_mcUCSXMatchId == 1) && (LepGood2_mcUCSXMatchId == 0 || LepGood2_mcUCSXMatchId == 1) && (LepGood3_mcUCSXMatchId == 0 || LepGood3_mcUCSXMatchId == 1) ; FillColor=ROOT.kOrange

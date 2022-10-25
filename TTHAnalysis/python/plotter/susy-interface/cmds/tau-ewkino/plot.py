@@ -212,56 +212,64 @@ elif(action=='crconv'):
         cuts='susy-ewkino/crconv/cuts_convs_3l.txt'
         mca='susy-ewkino/crconv/mca-3l-mcdata-conv.txt'
         
-        # Inclusive
-        out=outputDir+'3l_mcdata_conv/'
-        header='Inclusive'
-        #toplot=' --sP \'m3l\' --sP \'flavor3l\' --sP \'lep1_istight\' --sP \'lep1_pt\' --sP \'lep2_istight\' --sP \'lep2_pt\' --sP \'lep3_istight\' --sP \'lep3_pt\' --sP \'lep4_istight\' --sP \'lep4_pt\' '
-        toplot=' --sP \'m3l\' --sP \'flavor3l\' --sP \'el_matchStuff\' --sP \'mu_matchStuff\' '
-        # 
-        if(subaction=='all'):
-                toplot=''
-        runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
-        toplot='--sP \'m3l\''
-        if(subaction=='all'):
-                toplot=' '
+        ## Inclusive
+        #out=outputDir+'3l_mcdata_conv/'
+        #header='Inclusive'
+        ##toplot=' --sP \'m3l\' --sP \'flavor3l\' --sP \'lep1_istight\' --sP \'lep1_pt\' --sP \'lep2_istight\' --sP \'lep2_pt\' --sP \'lep3_istight\' --sP \'lep3_pt\' --sP \'lep4_istight\' --sP \'lep4_pt\' '
+        #toplot=' --sP \'m3l\' --sP \'flavor3l\' --sP \'el_matchStuff\' --sP \'mu_matchStuff\' '
+        ## 
+        #if(subaction=='all'):
+        #        toplot=''
+        #runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
+        #toplot='--sP \'m3l\''
+        #if(subaction=='all'):
+        #        toplot=' '
 
-        # ossf_e
-        out=outputDir+'3l_mcdata_conv/ossf_e/'
-        enablecuts=' --enable-cut=ossf_e '
-        header='#it{OSSF+e}'
-        runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
+        ## ossf_e
+        #out=outputDir+'3l_mcdata_conv/ossf_e/'
+        #enablecuts=' --enable-cut=ossf_e '
+        #header='#it{OSSF+e}'
+        #runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
+        #
+        ## ossf_m
+        #out=outputDir+'3l_mcdata_conv/ossf_m/'
+        #enablecuts=' --enable-cut=ossf_m '
+        #header='#it{OSSF+#mu}'
+        #runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
+        #
+        #
+        ## eee
+        #out=outputDir+'3l_mcdata_conv/eee/'
+        #enablecuts=' --enable-cut=eee '
+        #header='#it{eee}'
+        #runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
+        #
+        ## mmm
+        #out=outputDir+'3l_mcdata_conv/mmm/'
+        #enablecuts=' --enable-cut=mmm '
+        #header='#mu#mu#mu'
+        #runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
+        #
+        ## eem
+        #out=outputDir+'3l_mcdata_conv/eem/'
+        #enablecuts=' --enable-cut=eem '
+        #header='#it{e}#it{e}#mu'
+        #runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
+        #
+        ## mme
+        #out=outputDir+'3l_mcdata_conv/mme/'
+        #enablecuts=' --enable-cut=mme '
+        #header='#mu#mu#it{e}'
+        #runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
 
-        # ossf_m
-        out=outputDir+'3l_mcdata_conv/ossf_m/'
-        enablecuts=' --enable-cut=ossf_m '
-        header='#it{OSSF+#mu}'
-        runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
-
-
-        # eee
-        out=outputDir+'3l_mcdata_conv/eee/'
-        enablecuts=' --enable-cut=eee '
-        header='#it{eee}'
-        runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
+        twoltoplot='{toplot} --xP m3l '.format(toplot=toplot)
         
-        # mmm
-        out=outputDir+'3l_mcdata_conv/mmm/'
-        enablecuts=' --enable-cut=mmm '
-        header='#mu#mu#mu'
-        runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
-        
-        # eem
-        out=outputDir+'3l_mcdata_conv/eem/'
-        enablecuts=' --enable-cut=eem '
-        header='#it{e}#it{e}#mu'
-        runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
-        
-        # mme
-        out=outputDir+'3l_mcdata_conv/mme/'
-        enablecuts=' --enable-cut=mme '
-        header='#mu#mu#it{e}'
-        runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, toplot, weights3l, functions, enablecuts, header)
-
+        #cuts='susy-ewkino/crconv/cuts_convs_ss2lappl.txt'
+        #mca='susy-ewkino/crconv/mca-2lss-M17.txt'
+        #inputDir=""
+        #out=outputDir+'ss2lAppl_mcdata_conv/'
+        #header='ss2l application'
+        #runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, twoltoplot, weights2l, functions, enablecuts, header)
 
         #enablecuts=' '
         #twoltoplot='{toplot} --sP m3l '.format(toplot=toplot)
@@ -271,6 +279,16 @@ elif(action=='crconv'):
         #out=outputDir+'ss2lgamma_mcdata_conv/'
         #header='2l#gamma'
         #runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, twoltoplot, weights2l, functions, enablecuts, header)
+        
+        #cuts='susy-ewkino/crconv/cuts_convs_ss2l.txt'
+        cuts='susy-ewkino/crconv/cuts_convs_ss2lappl.txt'
+        inputDir='/pool/ciencias/HeppyTrees/RA7/estructura/skims_2lss_juan_fromConstantin_Feb27/'
+        inputDir='/pool/ciencias/userstorage/pietro/juanSkimsFeb27'
+        #mca='susy-ewkino/crconv/mca-2lss_appl.txt'
+        mca='susy-ewkino/crconv/forPietro/mca-2lss-M17.txt'
+        out=outputDir+'ss2lAppl_mcdata_conv/'
+        header='ss2l'
+        runPlots(cuts, mca, out, plots, inputDir, outputDir, pgroup, jei, lumi, mcc, mccother, trigdef, twoltoplot, weights2l, functions, enablecuts, header)
         #
         #cuts='susy-ewkino/crconv/cuts_convs_ss2l.txt'
         #mca='susy-ewkino/crconv/mca-ss2l-mcdata-conv.txt'
