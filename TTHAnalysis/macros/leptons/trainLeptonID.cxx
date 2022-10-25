@@ -267,7 +267,7 @@ void trainLeptonID(TString name, TString sig1file, TString sig2file, TString bkg
     // Boosted Decision Trees with gradient boosting
     TString BDTGopt("!H:!V:NTrees=500:BoostType=Grad:Shrinkage=0.10:!UseBaggedGrad:nCuts=2000:nEventsMin=100:NNodesMax=9:UseNvars=9:MaxDepth=8");
     if (name.Contains("pietro")) BDTGopt ="!H:!V:NTrees=500:MaxDepth=2:BoostType=Grad:UseBaggedBoost=True:SeparationType=CrossEntropy:Shrinkage=0.20";
-    if (name.Contains("pietroManyTrees")) BDTGopt ="!H:!V:NTrees=3000:MaxDepth=2:BoostType=Grad:UseBaggedBoost=True:SeparationType=CrossEntropy:Shrinkage=0.05";
+    if (name.Contains("pietroManyTrees")) BDTGopt ="!H:!V:NTrees=5000:MaxDepth=2:BoostType=Grad:UseBaggedBoost=True:SeparationType=CrossEntropy:Shrinkage=0.05";
     if (name.Contains("pietroSlow")) BDTGopt ="!H:!V:NTrees=1000:MaxDepth=2:BoostType=Grad:UseBaggedBoost=True:SeparationType=CrossEntropy:Shrinkage=0.05";
     // TString TTHopt = "!H:!V:NTrees=500:MaxDepth=2:BoostType=Grad:Shrinkage=0.10:UseNvars=9:nEventsMin=100:!UseBaggedGrad:NNodesMax=9";
     // TString TTHmore = "!H:!V:NTrees=2000:MaxDepth=2:BoostType=Grad:Shrinkage=0.10:UseNvars=9:nEventsMin=100:UseBaggedGrad:NNodesMax=9:GradBaggingFraction=0.2";
