@@ -37,6 +37,8 @@ def cropNegativeBins(histo,threshold=0.):
             if "TH1" in histo.ClassName():
                 for b in xrange(0,histo.GetNbinsX()+2):
                     if histo.GetBinContent(b) < threshold: histo.SetBinContent(b, threshold)
+                    if threshold>0 and histo.GetBinError(b)<0.01*threshold:
+                        histo.SetBinError(b,0.01*threshold)
             elif "TH2" in histo.ClassName():
                 for bx in xrange(0,histo.GetNbinsX()+2):
                     for by in xrange(0,histo.GetNbinsY()+2):

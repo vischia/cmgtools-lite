@@ -1,0 +1,5 @@
+# vim: syntax=sh
+
+TT_true+:  TTLep_pow      : xsec: (LepGood_genPartFlav == 1 || LepGood_genPartFlav == 15) && (Tau_genPartFlav != 5) ; FillColor=ROOT.kGreen+2, Label="prompt (tt)"
+
+inc_data : + ; IncludeMca="ttH-multilepton/mca-includes/mca-data.txt"

@@ -420,50 +420,54 @@ float ttH_catIndex_2lss1tau_CP( float tth, float thq, float bkg, float cp)
 }
 
 
-TF1* fTauSFs[3][3];
-TFile* fTauSFFiles[3];
+TF1* fTauSFs[4][3];
+TFile* fTauSFFiles[4];
 
-TF1* fTauFRs[3][2][5]; // year, eta range, (nom, par1Down, par1Up, par2Down, par2Up)
-TFile* fTauFRFiles[3];
+TF1* fTauFRs[4][2][5]; // year, eta range, (nom, par1Down, par1Up, par2Down, par2Up)
+TFile* fTauFRFiles[4];
 
 bool isTauSFInit=false;
-float tauSF( float taupt, float taueta, int year, int isMatch, int var=0, int varFRNorm=0, int varFRShape=0){  // var is -1,0,1
+float tauSF( float taupt, float taueta, int year, int suberaid, int isMatch, int var=0, int varFRNorm=0, int varFRShape=0, int varFRAdd=0){  // var is -1,0,1
 
-  assert( (abs(var)+abs(varFRShape)+abs(varFRNorm) != 0 && abs(var)+abs(varFRShape)+abs(varFRNorm) != 1) );
+  assert( (abs(var)+abs(varFRShape)+abs(varFRNorm)+abs(varFRAdd) != 0 && abs(var)+abs(varFRShape)+abs(varFRNorm)+abs(varFRAdd) != 1) );
 
   // to add the fr uncertainty
   if (!isTauSFInit){
     isTauSFInit=true;
-    fTauSFFiles[0]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauID_SF_pt_DeepTau2017v2p1VSjet_2016Legacy.root");
-    fTauSFFiles[1]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauID_SF_pt_DeepTau2017v2p1VSjet_2017ReReco.root");
-    fTauSFFiles[2]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauID_SF_pt_DeepTau2017v2p1VSjet_2018ReReco.root");
-    for (int i =0; i < 3; ++i){
+    fTauSFFiles[0]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauID_SF_pt_DeepTau2017v2p1VSjet_UL2016_preVFP.root");
+    fTauSFFiles[1]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauID_SF_pt_DeepTau2017v2p1VSjet_UL2016_postVFP.root");
+    fTauSFFiles[2]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauID_SF_pt_DeepTau2017v2p1VSjet_UL2017.root");
+    fTauSFFiles[3]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauID_SF_pt_DeepTau2017v2p1VSjet_UL2018.root");
+    for (int i =0; i < 4; ++i){
       fTauSFs[i][0]=(TF1*) fTauSFFiles[i]->Get("VLoose_down");
       fTauSFs[i][1]=(TF1*) fTauSFFiles[i]->Get("VLoose_cent");
       fTauSFs[i][2]=(TF1*) fTauSFFiles[i]->Get("VLoose_up");
     }
-    fTauFRFiles[0]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/FR_deeptau_2016_v6.root");
-    fTauFRFiles[1]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/FR_deeptau_2017_v6.root");
-    fTauFRFiles[2]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/FR_deeptau_2018_v6.root");
-    for (int i =0; i < 3; ++i){
-      fTauFRs[i][0][0]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEtaLt1_5/fitFunction_data_div_mc_hadTaus_pt");
-      fTauFRs[i][1][0]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEta1_5to9_9/fitFunction_data_div_mc_hadTaus_pt");
-      fTauFRs[i][0][1]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEtaLt1_5/fitFunction_data_div_mc_hadTaus_pt_par1Down");
-      fTauFRs[i][1][1]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEta1_5to9_9/fitFunction_data_div_mc_hadTaus_pt_par1Down");
-      fTauFRs[i][0][2]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEtaLt1_5/fitFunction_data_div_mc_hadTaus_pt_par1Up");
-      fTauFRs[i][1][2]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEta1_5to9_9/fitFunction_data_div_mc_hadTaus_pt_par1Up");
-      fTauFRs[i][0][3]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEtaLt1_5/fitFunction_data_div_mc_hadTaus_pt_par2Down");
-      fTauFRs[i][1][3]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEta1_5to9_9/fitFunction_data_div_mc_hadTaus_pt_par2Down");
-      fTauFRs[i][0][4]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEtaLt1_5/fitFunction_data_div_mc_hadTaus_pt_par2Up");
-      fTauFRs[i][1][4]=(TF1*) fTauFRFiles[i]->Get("jetToTauFakeRate_withoutTriggerMatching/deepVSjVLoose/absEta1_5to9_9/fitFunction_data_div_mc_hadTaus_pt_par2Up");
+    fTauFRFiles[0]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauSF_2016APV_fit.root");
+    fTauFRFiles[1]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauSF_2016_fit.root");
+    fTauFRFiles[2]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauSF_2017_fit.root");
+    fTauFRFiles[3]=TFile::Open("$CMSSW_BASE/src/CMGTools/TTHAnalysis/data/tauSF/TauSF_2018_fit.root ");
+    for (int i =0; i < 4; ++i){
+      fTauFRs[i][0][0]=(TF1*) fTauFRFiles[i]->Get("nominal_central");
+      fTauFRs[i][1][0]=(TF1*) fTauFRFiles[i]->Get("nominal_fwd");
+      fTauFRs[i][0][1]=(TF1*) fTauFRFiles[i]->Get("down_1st_central");
+      fTauFRs[i][1][1]=(TF1*) fTauFRFiles[i]->Get("down_1st_fwd");
+      fTauFRs[i][0][2]=(TF1*) fTauFRFiles[i]->Get("up_1st_central");
+      fTauFRs[i][1][2]=(TF1*) fTauFRFiles[i]->Get("up_1st_fwd");
+      fTauFRs[i][0][3]=(TF1*) fTauFRFiles[i]->Get("down_2nd_central");
+      fTauFRs[i][1][3]=(TF1*) fTauFRFiles[i]->Get("down_2nd_fwd");
+      fTauFRs[i][0][4]=(TF1*) fTauFRFiles[i]->Get("up_2nd_central");
+      fTauFRs[i][1][4]=(TF1*) fTauFRFiles[i]->Get("down_2nd_fwd");
     }
   }
   
-
+  int yearIdx = 0;
+  if (year == 2016)  yearIdx = suberaid;  // suberaid == 0 for 2016APV and 1 for 2016
+  if (year != 2016)  yearIdx = (year-2016)+1;
 
   if (isMatch){
-    float varSF=fTauSFs[year-2016][var+1]->Eval(taupt);
-    float nomSF=fTauSFs[year-2016][1]->Eval(taupt);
+    float varSF=fTauSFs[yearIdx][var+1]->Eval(taupt);
+    float nomSF=fTauSFs[yearIdx][1]->Eval(taupt);
     return  (1 + var*std::sqrt( (varSF/nomSF-1)*(varSF/nomSF-1) + 0.03*0.03))*nomSF;
   }
 
@@ -475,8 +479,15 @@ float tauSF( float taupt, float taueta, int year, int isMatch, int var=0, int va
     if (varFRNorm==-1) varIdx=1;
     if (varFRShape==1) varIdx=4;
     if (varFRShape==-1) varIdx=3;
-    return fTauFRs[year-2016][etaindx][varIdx]->Eval(taupt);
-  }
+    if (varFRAdd==1) varIdx=5;
+    if (varFRAdd==-1) varIdx=6;
+    if (varIdx < 5)
+       return fTauFRs[yearIdx][etaindx][varIdx]->Eval(taupt);
+    else if  (varIdx == 5)
+       return 1.3*fTauFRs[yearIdx][etaindx][0]->Eval(taupt);
+    else if (varIdx == 6)
+       return 0.7*fTauFRs[yearIdx][etaindx][0]->Eval(taupt);
+}
   
 
 }
@@ -759,254 +770,37 @@ int ttH_catIndex_3l_SVA_soft(int LepGood1_charge, int LepGood2_charge, int LepGo
 
 }
 
-TFile *_file_recoToLoose_leptonSF_mu1_lt30 = NULL;
-TFile *_file_recoToLoose_leptonSF_mu1_gt30 = NULL;
-TFile *_file_recoToLoose_leptonSF_mu2 = NULL;
-TFile *_file_recoToLoose_leptonSF_mu3 = NULL;
-TFile *_file_recoToLoose_leptonSF_mu4_lt10 = NULL;
-TFile *_file_recoToLoose_leptonSF_mu4_gt10 = NULL;
-TH2F *_histo_recoToLoose_leptonSF_mu1_lt30 = NULL;
-TH2F *_histo_recoToLoose_leptonSF_mu1_gt30 = NULL;
-TH2F *_histo_recoToLoose_leptonSF_mu2 = NULL;
-TH2F *_histo_recoToLoose_leptonSF_mu3 = NULL;
-TGraphAsymmErrors *_histo_recoToLoose_leptonSF_mu4_lt10 = NULL;
-TGraphAsymmErrors *_histo_recoToLoose_leptonSF_mu4_gt10 = NULL;
-TFile *_file_recoToLoose_leptonSF_el = NULL;
-TH2F *_histo_recoToLoose_leptonSF_el1 = NULL;
-TH2F *_histo_recoToLoose_leptonSF_el2 = NULL;
-TH2F *_histo_recoToLoose_leptonSF_el3 = NULL;
-TFile *_file_recoToLoose_leptonSF_gsf_lt20 = NULL;
-TH2F *_histo_recoToLoose_leptonSF_gsf_lt20 = NULL;
-TFile *_file_recoToLoose_leptonSF_gsf_gt20 = NULL;
-TH2F *_histo_recoToLoose_leptonSF_gsf_gt20 = NULL;
 
-float _get_recoToLoose_leptonSF_ttH(int pdgid, float pt, float eta, int nlep, float var){
 
-  // nlep is ignored for the loose selection
 
-  if (!_histo_recoToLoose_leptonSF_mu1_lt30) {
-    _file_recoToLoose_leptonSF_mu1_lt30 = new TFile("../../data/leptonSF/mu_scaleFactors_ptLt30.root","read");
-    _file_recoToLoose_leptonSF_mu1_gt30 = new TFile("../../data/leptonSF/mu_scaleFactors_ptGt30.root","read");
-    _file_recoToLoose_leptonSF_mu2 = new TFile("../../data/leptonSF/scaleFactors_mu_DxyDzSip8mIso04_over_LooseID.root","read");
-    //    _file_recoToLoose_leptonSF_mu3 = new TFile("../../data/leptonSF/TnP_NUM_TightIP2D_DENOM_MediumID_VAR_map_pt_eta.root","read");
-    _file_recoToLoose_leptonSF_mu4_lt10 = new TFile("../../data/leptonSF/mu_scaleFactors_trkEff_ptLt10.root","read");
-    _file_recoToLoose_leptonSF_mu4_gt10 = new TFile("../../data/leptonSF/mu_scaleFactors_trkEff_ptGt10.root","read");
-    _histo_recoToLoose_leptonSF_mu1_lt30 = (TH2F*)(_file_recoToLoose_leptonSF_mu1_lt30->Get("NUM_LooseID_DEN_genTracks_pt_abseta"));
-    _histo_recoToLoose_leptonSF_mu1_gt30 = (TH2F*)(_file_recoToLoose_leptonSF_mu1_gt30->Get("NUM_LooseID_DEN_genTracks_pt_abseta"));
-    _histo_recoToLoose_leptonSF_mu2 = (TH2F*)(_file_recoToLoose_leptonSF_mu2->Get("NUM_ttHLoo_DEN_LooseID"));
-    //    _histo_recoToLoose_leptonSF_mu3 = (TH2F*)(_file_recoToLoose_leptonSF_mu3->Get("SF"));
-    _histo_recoToLoose_leptonSF_mu4_lt10 = (TGraphAsymmErrors*)(_file_recoToLoose_leptonSF_mu4_lt10->Get("ratio_eff_eta3_tk0_dr030e030_corr"));
-    _histo_recoToLoose_leptonSF_mu4_gt10 = (TGraphAsymmErrors*)(_file_recoToLoose_leptonSF_mu4_gt10->Get("ratio_eff_eta3_dr030e030_corr"));
-  }
-  if (!_histo_recoToLoose_leptonSF_el1) {
-    _file_recoToLoose_leptonSF_el = new TFile("../../data/leptonSF/egammaEffi.txt_EGM2D_looseTTH_2017.root","read");
-    _histo_recoToLoose_leptonSF_el1 = (TH2F*)(_file_recoToLoose_leptonSF_el->Get("EGamma_SF2D"));
-//    _histo_recoToLoose_leptonSF_el2 = (TH2F*)(_file_recoToLoose_leptonSF_el->Get("MVAVLooseElectronToMini4"));
-//    _histo_recoToLoose_leptonSF_el3 = (TH2F*)(_file_recoToLoose_leptonSF_el->Get("MVAVLooseElectronToConvVetoIHit1"));
-  }
-  if (!_histo_recoToLoose_leptonSF_gsf_lt20) {
-    _file_recoToLoose_leptonSF_gsf_lt20 = new TFile("../../data/leptonSF/el_scaleFactors_gsf_ptLt20.root","read");
-    _histo_recoToLoose_leptonSF_gsf_lt20 = (TH2F*)(_file_recoToLoose_leptonSF_gsf_lt20->Get("EGamma_SF2D"));
-    _file_recoToLoose_leptonSF_gsf_gt20 = new TFile("../../data/leptonSF/el_scaleFactors_gsf_ptGt20.root","read");
-    _histo_recoToLoose_leptonSF_gsf_gt20 = (TH2F*)(_file_recoToLoose_leptonSF_gsf_gt20->Get("EGamma_SF2D"));
-  }
+std::map<TString, TFile*> fRecoToLoose;
+std::map<TString, TH1*> hRecoToLoose;
 
-  if (abs(pdgid)==13){
-
-    float out = 1;
-
-    TH2F *hist = (pt<30) ? _histo_recoToLoose_leptonSF_mu1_lt30 : _histo_recoToLoose_leptonSF_mu1_gt30;
-    int ptbin  = std::max(1, std::min(hist->GetNbinsX(), hist->GetXaxis()->FindBin(pt)));
-    int etabin = std::max(1, std::min(hist->GetNbinsY(), hist->GetYaxis()->FindBin(fabs(eta))));
-    out *= (pt>=15 && pt<30 && fabs(eta)>=2.1 && fabs(eta)<2.4) ? 1 : hist->GetBinContent(ptbin,etabin)+var*hist->GetBinError(ptbin,etabin); // careful: workaround, SF was not measured there
-
-    if (_histo_recoToLoose_leptonSF_mu2){
-    hist = _histo_recoToLoose_leptonSF_mu2;
-    ptbin  = std::max(1, std::min(hist->GetNbinsX(), hist->GetXaxis()->FindBin(pt)));
-    etabin = std::max(1, std::min(hist->GetNbinsY(), hist->GetYaxis()->FindBin(fabs(eta))));
-    out *= hist->GetBinContent(ptbin,etabin)+var*hist->GetBinError(ptbin,etabin);
+float _get_looseToTight_leptonSF_ttH(int pdgid, float pt, float eta, int nlep, int year, int suberaid){
+  
+  if (!fRecoToLoose.size()){
+    for (auto& theyear : {"2016","2016APV", "2017", "2018"}){
+      fRecoToLoose[TString::Format("%s_el_2lss",theyear)]=TFile::Open(TString::Format("../../data/leptonSF/elecNEWmva/egammaEffi%s_2lss_EGM2D.root",theyear));
+      fRecoToLoose[TString::Format("%s_el_3l",theyear)]=TFile::Open(TString::Format("../../data/leptonSF/elecNEWmva/egammaEffi%s_3l_EGM2D.root",theyear));
+      fRecoToLoose[TString::Format("%s_mu_3l",theyear)]=TFile::Open(TString::Format("../../data/leptonSF/muon/egammaEffi%s_EGM2D.root",theyear));
     }
 
-    if (_histo_recoToLoose_leptonSF_mu3){
-    hist = _histo_recoToLoose_leptonSF_mu3;
-    ptbin  = std::max(1, std::min(hist->GetNbinsX(), hist->GetXaxis()->FindBin(pt)));
-    etabin = std::max(1, std::min(hist->GetNbinsY(), hist->GetYaxis()->FindBin(fabs(eta))));
-    out *= hist->GetBinContent(ptbin,etabin)+var*hist->GetBinError(ptbin,etabin);
+    for (auto const & x : fRecoToLoose){
+      hRecoToLoose[x.first]=(TH1*) x.second->Get("EGamma_SF2D");
     }
-
-    if (_histo_recoToLoose_leptonSF_mu4_lt10 || _histo_recoToLoose_leptonSF_mu4_gt10){
-      TGraphAsymmErrors *hist1 = (pt<10) ? _histo_recoToLoose_leptonSF_mu4_lt10 : _histo_recoToLoose_leptonSF_mu4_gt10;
-      float eta1 = std::max(float(hist1->GetXaxis()->GetXmin()+1e-5), std::min(float(hist1->GetXaxis()->GetXmax()-1e-5), eta));
-      out *= hist1->Eval(eta1); // uncertainty ignored here
-    }
-
-    if (out<=0) std::cout << "ERROR in muon recoToLoose SF: " << out << std::endl;
-    return out;
 
   }
 
-  if (abs(pdgid)==11){
-    TH2F *hist = NULL;
-    float out = 1;
-    int ptbin, etabin;
-    if (_histo_recoToLoose_leptonSF_el1){
-    hist = _histo_recoToLoose_leptonSF_el1;
-    etabin = std::max(1, std::min(hist->GetNbinsX(), hist->GetXaxis()->FindBin(eta))); // careful, different convention
-    ptbin  = std::max(1, std::min(hist->GetNbinsY(), hist->GetYaxis()->FindBin(pt)));
-    out *= hist->GetBinContent(etabin,ptbin)+var*hist->GetBinError(etabin,ptbin);
-    }
-    if (_histo_recoToLoose_leptonSF_el2){
-    hist = _histo_recoToLoose_leptonSF_el2;
-    ptbin  = std::max(1, std::min(hist->GetNbinsX(), hist->GetXaxis()->FindBin(pt)));
-    etabin = std::max(1, std::min(hist->GetNbinsY(), hist->GetYaxis()->FindBin(eta)));
-    out *= hist->GetBinContent(ptbin,etabin)+var*hist->GetBinError(ptbin,etabin);
-    }
-    if (_histo_recoToLoose_leptonSF_el3){
-    hist = _histo_recoToLoose_leptonSF_el3;
-    ptbin  = std::max(1, std::min(hist->GetNbinsX(), hist->GetXaxis()->FindBin(pt)));
-    etabin = std::max(1, std::min(hist->GetNbinsY(), hist->GetYaxis()->FindBin(eta)));
-    out *= hist->GetBinContent(ptbin,etabin)+var*hist->GetBinError(ptbin,etabin);
-    }
-    if (_histo_recoToLoose_leptonSF_gsf_lt20 && pt<20){
-    hist = _histo_recoToLoose_leptonSF_gsf_lt20;
-    etabin = std::max(1, std::min(hist->GetNbinsX(), hist->GetXaxis()->FindBin(eta))); // careful, different convention
-    ptbin  = std::max(1, std::min(hist->GetNbinsY(), hist->GetYaxis()->FindBin(pt)));
-    out *= hist->GetBinContent(etabin,ptbin)+var*hist->GetBinError(etabin,ptbin);
-    }
-    if (_histo_recoToLoose_leptonSF_gsf_gt20 && pt>=20){
-    hist = _histo_recoToLoose_leptonSF_gsf_gt20;
-    etabin = std::max(1, std::min(hist->GetNbinsX(), hist->GetXaxis()->FindBin(eta))); // careful, different convention
-    ptbin  = std::max(1, std::min(hist->GetNbinsY(), hist->GetYaxis()->FindBin(pt)));
-    out *= hist->GetBinContent(etabin,ptbin)+var*hist->GetBinError(etabin,ptbin);
-    }
+  TString yearString= TString::Format("%d",year) + (( year == 2016 && suberaid == 0) ? "APV" : "");
+  TString pdgstring  = (abs(pdgid) == 11) ? "el" : "mu";
+  TString lepstring = (nlep == 2 && abs(pdgid) == 11 ) ? "2lss" : "3l";
 
-    if (out<=0) std::cout << "ERROR in electron recoToLoose SF: " << out << std::endl;
-    return out;
-  }
+  auto h = hRecoToLoose.at( yearString + "_" + pdgstring + "_" + lepstring);
+  int bin = h->FindBin( std::abs(eta) ,std::min(std::max(pt,10.1f),119.f));
 
-  std::cout << "ERROR in recoToLoose SF" << std::endl;
-  std::abort();
-  return 1;
+  return h->GetBinContent(bin);
 
 }
-
-TFile *_file_looseToTight_leptonSF_mu_2lss = NULL;
-TH2F *_histo_looseToTight_leptonSF_mu_2lss = NULL;
-TFile *_file_looseToTight_leptonSF_el_2lss = NULL;
-TH2F *_histo_looseToTight_leptonSF_el_2lss = NULL;
-TFile *_file_looseToTight_leptonSF_mu_3l = NULL;
-TH2F *_histo_looseToTight_leptonSF_mu_3l = NULL;
-TFile *_file_looseToTight_leptonSF_el_3l = NULL;
-TH2F *_histo_looseToTight_leptonSF_el_3l = NULL;
-
-float _get_looseToTight_leptonSF_ttH(int pdgid, float pt, float eta, int nlep){
-
-  if (!_histo_looseToTight_leptonSF_mu_2lss) {
-    _file_looseToTight_leptonSF_mu_2lss = new TFile("../../data/leptonSF/lepMVAEffSF_m_2lss.root","read");
-    _histo_looseToTight_leptonSF_mu_2lss = (TH2F*)(_file_looseToTight_leptonSF_mu_2lss->Get("sf"));
-  }
-  if (!_histo_looseToTight_leptonSF_el_2lss) {
-    _file_looseToTight_leptonSF_el_2lss = new TFile("../../data/leptonSF/lepMVAEffSF_e_2lss.root","read");
-    _histo_looseToTight_leptonSF_el_2lss = (TH2F*)(_file_looseToTight_leptonSF_el_2lss->Get("sf"));
-  }
-  if (!_histo_looseToTight_leptonSF_mu_3l) {
-    _file_looseToTight_leptonSF_mu_3l = new TFile("../../data/leptonSF/lepMVAEffSF_m_3l.root","read");
-    _histo_looseToTight_leptonSF_mu_3l = (TH2F*)(_file_looseToTight_leptonSF_mu_3l->Get("sf"));
-  }
-  if (!_histo_looseToTight_leptonSF_el_3l) {
-    _file_looseToTight_leptonSF_el_3l = new TFile("../../data/leptonSF/lepMVAEffSF_e_3l.root","read");
-    _histo_looseToTight_leptonSF_el_3l = (TH2F*)(_file_looseToTight_leptonSF_el_3l->Get("sf"));
-  }
-
-  TH2F *hist = 0;
-  if (abs(pdgid)==13) hist = (nlep>2) ? _histo_looseToTight_leptonSF_mu_3l : _histo_looseToTight_leptonSF_mu_2lss;
-  else if (abs(pdgid)==11) hist = (nlep>2) ? _histo_looseToTight_leptonSF_el_3l : _histo_looseToTight_leptonSF_el_2lss;
-  if (!hist) {std::cout << "ERROR in looseToTight SF" << std::endl; std::abort();}
-  int ptbin  = std::max(1, std::min(hist->GetNbinsX(), hist->GetXaxis()->FindBin(pt)));
-  int etabin = std::max(1, std::min(hist->GetNbinsY(), hist->GetYaxis()->FindBin(fabs(eta))));
-  return hist->GetBinContent(ptbin,etabin);
-
-}
-
-float leptonSF_ttH(int pdgid, float pt, float eta, int nlep, float var=0){
-
-  float recoToLoose = _get_recoToLoose_leptonSF_ttH(pdgid,pt,eta,nlep,var);
-  float looseToTight = _get_looseToTight_leptonSF_ttH(pdgid,pt,eta,nlep); // var is ignored in all cases for the tight part (systematics handled as nuisance parameter)
-  float res = recoToLoose*looseToTight;
-  if (!(res>0)) {std::cout << "ERROR in leptonSF " << res << std::endl; std::abort();}
-  return res;
-
-}
-
-float leptonSF_ttH_var(int pdgid, float pt, float eta, int nlep, float var_e, float var_m){
-
-  if (abs(pdgid)==11) return (var_e==0) ? 1 : leptonSF_ttH(pdgid,pt,eta,nlep,var_e)/leptonSF_ttH(pdgid,pt,eta,nlep);
-  if (abs(pdgid)==13) return (var_m==0) ? 1 : leptonSF_ttH(pdgid,pt,eta,nlep,var_m)/leptonSF_ttH(pdgid,pt,eta,nlep);
-
-  return 1;
-
-}
-
-//TFile *file_triggerSF_ttH = NULL;
-//TH2Poly* t2poly_triggerSF_ttH_mm = NULL;
-//TH2Poly* t2poly_triggerSF_ttH_ee = NULL;
-//TH2Poly* t2poly_triggerSF_ttH_em = NULL;
-//TH2Poly* t2poly_triggerSF_ttH_3l = NULL;
-
-// float triggerSF_ttH(int pdgid1, float pt1, int pdgid2, float pt2, int nlep, float shift = 0){
-
-//   if (nlep>=3) return 1.0+shift*0.05;
-
-//   int comb = abs(pdgid1)+abs(pdgid2);
-
-//   if (comb==22) return (pt1<30) ? (0.937+shift*0.027) : (0.991+shift*0.002); // ee
-//   else if (comb==24) { // em
-//     if (pt1<35) return 0.952+shift*0.008;
-//     else if (pt1<50) return 0.983+shift*0.003;
-//     else return 1.0+shift*0.001;
-//   }
-//   else if (comb==26) return (pt1<35) ? (0.972+shift*0.006) : (0.994+shift*0.001); // mm
-
-//   std::cout << "ERROR: triggerSF_ttH called with wrong input, returning 1" << std::endl;
-//   return 1;
-
-// }
-
-//float triggerSF_ttH(int pdgid1, float pt1, int pdgid2, float pt2, int nlep, float var=0){
-//
-//  if (!file_triggerSF_ttH) {
-//    file_triggerSF_ttH = new TFile("../../data/triggerSF/trig_eff_map_v4.root");
-//    t2poly_triggerSF_ttH_mm = (TH2Poly*)(file_triggerSF_ttH->Get("SSuu2DPt_effic"));
-//    t2poly_triggerSF_ttH_ee = (TH2Poly*)(file_triggerSF_ttH->Get("SSee2DPt__effic"));
-//    t2poly_triggerSF_ttH_em = (TH2Poly*)(file_triggerSF_ttH->Get("SSeu2DPt_effic"));
-//    t2poly_triggerSF_ttH_3l = (TH2Poly*)(file_triggerSF_ttH->Get("__3l2DPt_effic"));
-//    if (!(t2poly_triggerSF_ttH_mm && t2poly_triggerSF_ttH_ee && t2poly_triggerSF_ttH_em && t2poly_triggerSF_ttH_3l)) {
-//	std::cout << "Impossible to load trigger scale factors!" << std::endl;
-//	file_triggerSF_ttH->ls();
-//	file_triggerSF_ttH = NULL;
-//      }
-//  }
-//  TH2Poly* hist = NULL;
-//  if (nlep==2){
-//    if (abs(pdgid1)==13 && abs(pdgid2)==13) hist = t2poly_triggerSF_ttH_mm;
-//    else if (abs(pdgid1)==11 && abs(pdgid2)==11) hist = t2poly_triggerSF_ttH_ee;
-//    else hist = t2poly_triggerSF_ttH_em;
-//  }
-//  else if (nlep==3) hist = t2poly_triggerSF_ttH_3l;
-//  else std::cout << "Wrong options to trigger scale factors" << std::endl;
-//  pt1 = std::max(float(hist->GetXaxis()->GetXmin()+1e-5), std::min(float(hist->GetXaxis()->GetXmax()-1e-5), pt1));
-//  pt2 = std::max(float(hist->GetYaxis()->GetXmin()+1e-5), std::min(float(hist->GetYaxis()->GetXmax()-1e-5), pt2));
-//  int bin = hist->FindBin(pt1,pt2);
-//  float eff = hist->GetBinContent(bin) + var * hist->GetBinError(bin);
-//
-//  if (nlep>2) return eff;
-//  int cat = (abs(pdgid1)==11) + (abs(pdgid2)==11);
-//  if (cat==2) return eff*1.02;
-//  else if (cat==1) return eff*1.02;
-//  else return eff*1.01;
-//
-//
-//}
 
 
 float ttH_2lss_ifflav(int LepGood1_pdgId, int LepGood2_pdgId, float ret_ee, float ret_em, float ret_mm){
@@ -1098,11 +892,27 @@ int hashBasedRunPeriod2017(int isData, int run, int lumi, int event, int year){
   return std::distance(cumul.begin(),period)-1 + ( (year == 2017) ? 7 : 0 ) + ( (year == 2018) ? 12 : 0 );
 }
 
-float smoothBFlav(float jetpt, float ptmin, float ptmax, int year, float scale_loose=1.0) {
-    float wploose[3]  = { 0.0614, 0.0521, 0.0494 };
-    float wpmedium[3] = { 0.3093, 0.3033, 0.2770 };
-    float x = std::min(std::max(0.f, jetpt - ptmin)/(ptmax-ptmin), 1.f); 
-    return x*wploose[year-2016]*scale_loose + (1-x)*wpmedium[year-2016];
+
+float wploose[3][2]  = {{0.0508, 0.0480}, {0.0532,-99}, {0.0490,-99}};
+float wpmedium[3][2] = {{0.2598,0.2489} , {0.3040,-99}, {0.2783,-99}};
+
+float deepFlavB_WPLoose(int year, int subera) {
+    return wploose[year-2016][subera];
+}
+float deepFlavB_WPMedium(int year, int subera) {
+    return wpmedium[year-2016][subera];
+}
+// float deepFlavB_WPTight(int year, int subera) {
+//     float wp[3]  = { 0.7221, 0.7489, 0.7264 };
+//     return wp[year-2016];
+// }
+
+float smoothBFlav(float jetpt, float ptmin, float ptmax, int year, int subera, float scale_loose=1.0) {
+
+  float the_wploose =wploose[year-2016][subera];
+  float the_wpmedium=wpmedium[year-2016][subera];
+  float x = std::min(std::max(0.f, jetpt - ptmin)/(ptmax-ptmin), 1.f); 
+  return x*the_wploose*scale_loose + (1-x)*the_wpmedium;
 }
 
 float ttH_4l_clasifier(float nJet25,float nBJetMedium25,float mZ2){
@@ -1117,69 +927,138 @@ float ttH_4l_clasifier(float nJet25,float nBJetMedium25,float mZ2){
 
 float ttH_3l_clasifier(float nJet25,float nBJetMedium25){
 
+  if (nJet25 == 0) return 0;
   if ((nJet25 == 1)*(nBJetMedium25 == 0)) return 1;
   if ((nJet25 == 2)*(nBJetMedium25 == 0)) return 2;
   if ((nJet25 == 3)*(nBJetMedium25 == 0)) return 3;
   if ((nJet25>3)*(nBJetMedium25 == 0))    return 4;
-  if ((nJet25 == 2)*(nBJetMedium25 == 1)) return 5;
-  if ((nJet25 == 3)*(nBJetMedium25 == 1)) return 6;
-  if ((nJet25 == 4)*(nBJetMedium25 == 1)) return 7;
-  if ((nJet25>4)*(nBJetMedium25 == 1))    return 8;
-  if ((nJet25 == 2)*(nBJetMedium25>1))    return 9;
-  if ((nJet25 == 3)*(nBJetMedium25>1))    return 10;
-  if ((nJet25 == 4)*(nBJetMedium25>1))    return 11;
-  if ((nJet25>4)*(nBJetMedium25>1))       return 12;
+  if ((nJet25 == 1)*(nBJetMedium25 == 1)) return 5;
+  if ((nJet25 == 2)*(nBJetMedium25 == 1)) return 6;
+  if ((nJet25 == 3)*(nBJetMedium25 == 1)) return 7;
+  if ((nJet25 == 4)*(nBJetMedium25 == 1)) return 8;
+  if ((nJet25>4)*(nBJetMedium25 == 1))    return 9;
+  if ((nJet25 == 2)*(nBJetMedium25>1))    return 10;
+  if ((nJet25 == 3)*(nBJetMedium25>1))    return 11;
+  if ((nJet25 == 4)*(nBJetMedium25>1))    return 12;
+  if ((nJet25>4)*(nBJetMedium25>1))       return 13;
   else return -1;
 }
 
+float triggerSF_ttH(int pdgid1, float pt1, int pdgid2, float pt2, int nlep, int year, int suberaid, int var=0){
 
-float triggerSF_ttH(int pdgid1, float pt1, int pdgid2, float pt2, int nlep, int year, int var=0){
+  TString yearString= TString::Format("%d",year) + (( year == 2016 && suberaid == 0) ? "APV" : "");
+
   if (nlep == 2){
     if (abs(pdgid1*pdgid2) == 121){
-      if (year == 2016){
-	if (pt2 < 25){
-	  return 0.98*(1 + var*0.02);
-	}
-      else return 1.*(1 + var*0.02);
+
+      if (yearString == "2016APV"){
+        if (pt2 < 20){
+          return 0.96*(1 + var*0.02);
+        }
+        else if (pt2 > 20 && pt2 < 55){
+          return 0.99*(1 + var*0.01);
+        }
+        else return 1.*(1 + var*0.01);
       }
-      if (year == 2017){
-	if (pt2<40) return 0.98*(1 + var*0.01);
-	else return 1*(1 + var*0.01);
+
+      if (yearString == "2016"){
+        if (pt2 < 40){
+          return 0.98*(1 + var*0.02);
+        }
+        else return 0.99*(1 + var*0.01);
       }
-      if (year == 2018){
-	if (pt2<25){
-	return 0.98*(1 + var*0.01);
-	}
-	else return 1.*(1 + var*0.01);
+
+      if (yearString == "2017"){
+        if (pt2<25) return 0.96*(1 + var*0.02);
+	else return 0.985*(1 + var*0.01);
+      }
+
+      if (yearString == "2018"){
+        if (pt2<20){
+	  return 0.98*(1 + var*0.01);
+        }
+        else if (pt2 > 20 && pt2 < 70){
+          return 1.*(1 + var*0.01);
+        }
+        else return 1.01*(1 + var*0.005);
       }
     }
-    
+
     else if ( abs(pdgid1*pdgid2) == 143){
-      if (year == 2016) return 1.*(1 + var*0.01);
-      if (year == 2017){
-	if (pt2<40) return 0.98*(1 + var*0.01);
-	else return 0.99*(1 + var*0.01);
+
+      if (yearString == "2016APV"){
+        if (pt2 < 25){
+          return 0.98*(1 + var*0.01);
+        }
+        else if (pt2 > 25 && pt2 < 70){
+          return 0.99*(1 + var*0.005);
+        }
+        else return 1.*(1 + var*0.005);
       }
-      if (year == 2018){
-	if (pt2<25) return 0.98*(1 + var*0.01);
-	else        return 1*(1 + var*0.01);
+
+      if (yearString == "2016"){
+        if (pt2 < 20){
+          return 0.98*(1 + var*0.02);
+        }
+        else return 0.99*(1 + var*0.01);
+      }
+
+      if (yearString == "2017"){
+	if (pt2<20) return 0.99*(1 + var*0.01);
+        else if (pt2 > 20 && pt2 < 40){
+          return 0.98*(1 + var*0.01);
+        }
+        else return 0.995*(1 + var*0.005);
+      }
+
+      if (yearString == "2018"){
+        if (pt2<20) return 0.98*(1 + var*0.01);
+        else if (pt2 > 20 && pt2 < 55){
+          return 0.99*(1 + var*0.005);
+        }
+        else  return 1.*(1 + var*0.005);
       }
     }
+
     else{
-      if (year == 2016) return 0.99*(1 + var*0.01);
-      if (year == 2017){
-	if (pt2 < 40) return 0.97*(1 + var*0.02);
-	else if (pt2 < 55 && pt2>40) return 0.995*(1 + var*0.02);
-	else if (pt2 < 70 && pt2>55) return 0.96*(1 + var*0.02);
-	else                         return 0.94*(1 + var*0.02);
+      if (yearString == "2016APV"){
+        if (pt2 < 25){
+          return 0.98*(1 + var*0.01);
+        }
+        else return 0.99*(1 + var*0.01);
       }
-      if (year == 2018){
-	if (pt1 < 40) return 1.01*(1 + var*0.01);
-	if (pt1 < 70) return 0.995*(1 + var*0.01);
-	else return 0.98*(1 + var*0.01);
+
+      if (yearString == "2016"){
+        if (pt2 < 20){
+          return 0.97*(1 + var*0.01);
+        }
+        else return 0.99*(1 + var*0.01);
+      }
+
+      if (yearString == "2017"){
+        if (pt2 < 25){
+          return 0.97*(1 + var*0.01);
+        }
+        else return 0.99*(1 + var*0.01);
+      }
+
+      if (yearString == "2018"){
+        return 0.99*(1 + var*0.01);
       }
     }
-    
+
   }
-  else return 1.;
+  else {
+    
+    if (yearString == "2016APV" || yearString == "2016"){
+      return 1.*(1 + var*0.02);
+    }
+    if (yearString == "2017" || yearString == "2018"){
+      return 1.*(1 + var*0.01);
+    }
+
+  }
+
 }
+
+

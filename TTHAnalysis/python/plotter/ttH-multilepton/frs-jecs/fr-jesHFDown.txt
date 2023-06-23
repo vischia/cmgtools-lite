@@ -1,8 +1,10 @@
 change: MET_pt\b: MET_pt_jesHFDown
-change: METFixEE2017_pt\b: METFixEE2017_pt_jesHFDown
 change: nJet25_Recl\b: nJet25_jesHFDown_Recl
 change: htJet25j_Recl\b: htJet25j_jesHFDown_Recl
 change: mhtJet25_Recl\b: mhtJet25_jesHFDown_Recl
+change: nJet30_Recl\b: nJet30_jesHFDown_Recl
+change: htJet30j_Recl\b: htJet30j_jesHFDown_Recl
+change: mhtJet30_Recl\b: mhtJet30_jesHFDown_Recl
 change: nJet40_Recl\b: nJet40_jesHFDown_Recl
 change: htJet40j_Recl\b: htJet40j_jesHFDown_Recl
 change: mhtJet40_Recl\b: mhtJet40_jesHFDown_Recl
@@ -36,4 +38,7 @@ change: BDThttTT_eventReco_Hj_score\b: BDThttTT_eventReco_Hj_score_jesHFDown
 change: DNN_3l_predictions_ttH\b: DNN_3l_jesHFDown_predictions_ttH
 change: DNN_3l_predictions_rest\b: DNN_3l_jesHFDown_predictions_rest
 change: DNN_3l_predictions_tH\b: DNN_3l_jesHFDown_predictions_tH
+change: mvaCP_2lss1tau\b: mvaCP_2lss1tau_jesHFDown
+change: mvaCP_3l\b: mvaCP_3l_jesHFDown
+change: mvaCP_2lss\b: mvaCP_2lss_jesHFDown
 weight:1

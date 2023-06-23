@@ -1,8 +1,8 @@
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module 
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection as NanoAODCollection 
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection 
 
-from CMGTools.TTHAnalysis.treeReAnalyzer import Collection as CMGCollection
-from CMGTools.TTHAnalysis.tools.nanoAOD.friendVariableProducerTools import declareOutput, writeOutput
+from CMGTools.TTHAnalysis.tools.nanoAOD.friendVariableProducerTools import declareOutput, writeOutput, loadHisto
+
 from CMGTools.TTHAnalysis.tools.tfTool import TFTool
 import os 
 from copy import deepcopy
@@ -11,14 +11,23 @@ class finalMVA_DNN(Module):
     def __init__(self, variations=[], doSystJEC=True, fillInputs=False):
         self.outVars = []
         self._MVAs   = [] 
-        fillInputs = True
+        self.fillInputs = fillInputs
         varorder = ["jet3_pt","jet3_eta","lep1_eta","jet2_pt","jet1_pt","jetFwd1_eta","mT_lep1","mT_lep2","jet4_phi","lep2_conePt","hadTop_BDT","jet1_phi","jet2_eta","n_presel_jetFwd","n_presel_jet","lep1_charge","avg_dr_jet","lep1_phi","Hj_tagger_hadTop","nBJetLoose","jet4_pt","mindr_lep1_jet","lep1_conePt","jetFwd1_pt","lep2_phi","jet2_phi","lep2_eta","mbb","mindr_lep2_jet","jet4_eta","nBJetMedium","Dilep_pdgId","metLD","jet3_phi","maxeta","jet1_eta"]
         cats_2lss = ['predictions_ttH','predictions_Rest','predictions_ttW','predictions_tHQ']
 
         if fillInputs:
-            self.outVars.extend(varorder+['nEvent'])
+            self.outVars.extend(varorder+[('nEvent','L')])
+            self.outVars.extend(['frWeight','HTXS_Higgs_pt','HTXS_Higgs_y','genWeight'])
             self.inputHelper = self.getVarsForVariation('')
             self.inputHelper['nEvent'] = lambda ev : ev.event
+            self.inputHelper['HTXS_Higgs_pt'] = lambda ev : ev.HTXS_Higgs_pt if hasattr(ev, 'HTXS_Higgs_pt') else 0
+            self.inputHelper['HTXS_Higgs_y'] = lambda ev : ev.HTXS_Higgs_y  if hasattr(ev, 'HTXS_Higgs_pt') else 0
+            self.inputHelper['genWeight'] = lambda ev : ev.genWeight
+            self.fakerate={}
+            for year in '2016APV_2016,2017,2018'.split(','):
+                self.fakerate[year]={}
+                self.fakerate[year][11]=loadHisto(os.environ['CMSSW_BASE'] + '/src/CMGTools/TTHAnalysis/data/fakerate/fr_%s.root'%year, 'FR_mva090_el_TT')
+                self.fakerate[year][13]=loadHisto(os.environ['CMSSW_BASE'] + '/src/CMGTools/TTHAnalysis/data/fakerate/fr_%s.root'%year, 'FR_mva085_mu_TT')
 
         self.systsJEC = {0:"",\
                          1:"_jesTotalCorrUp"  , -1:"_jesTotalCorrDown",\
@@ -34,27 +43,27 @@ class finalMVA_DNN(Module):
 
         for var in self.systsJEC: 
             self._MVAs.append( TFTool('DNN_2lss%s'%self.systsJEC[var], os.environ['CMSSW_BASE'] + '/src/CMGTools/TTHAnalysis/data/kinMVA/tth/2017samples_xmasupdates_tH_selection.pb',
-                               self.getVarsForVariation(self.systsJEC[var]), cats_2lss, varorder))
+                                      self.getVarsForVariation(self.systsJEC[var]), cats_2lss, varorder, outputNodename="dense_17/Softmax"))
 
             self.outVars.extend( ['DNN_2lss%s_'%self.systsJEC[var] + x for x in cats_2lss])
 
 
         vars_2lss_unclUp = deepcopy(self.getVarsForVariation(''))
-        vars_2lss_unclUp["metLD"            ] =  lambda ev : (ev.MET_pt_unclustEnUp if ev.year != 2017 else ev.METFixEE2017_pt_unclustEnUp) *0.6 + ev.mhtJet25_Recl*0.4
+        vars_2lss_unclUp["metLD"            ] =  lambda ev : (ev.MET_T1_pt_unclustEnUp ) *0.6 + ev.mhtJet25_Recl*0.4
         vars_2lss_unclUp["mT_lep1"          ] =  lambda ev : ev.MT_met_lep1_unclustEnUp
         vars_2lss_unclUp["mT_lep2"          ] =  lambda ev : ev.MT_met_lep2_unclustEnUp
         self.outVars.extend( ['DNN_2lss_unclUp_' + x for x in cats_2lss])
 
         vars_2lss_unclDown = deepcopy(self.getVarsForVariation(''))
-        vars_2lss_unclDown["metLD"            ] =  lambda ev : (ev.MET_pt_unclustEnDown if ev.year != 2017 else ev.METFixEE2017_pt_unclustEnDown) *0.6 + ev.mhtJet25_Recl*0.4
+        vars_2lss_unclDown["metLD"            ] =  lambda ev : (ev.MET_T1_pt_unclustEnDown) *0.6 + ev.mhtJet25_Recl*0.4
         vars_2lss_unclDown["mT_lep1"          ] =  lambda ev : ev.MT_met_lep1_unclustEnDown
         vars_2lss_unclDown["mT_lep2"          ] =  lambda ev : ev.MT_met_lep2_unclustEnDown
         self.outVars.extend( ['DNN_2lss_unclDown_' + x for x in cats_2lss])
 
         worker_2lss_unclUp        = TFTool('DNN_2lss_unclUp', os.environ['CMSSW_BASE'] + '/src/CMGTools/TTHAnalysis/data/kinMVA/tth/2017samples_xmasupdates_tH_selection.pb',
-                                           vars_2lss_unclUp, cats_2lss, varorder)
+                                           vars_2lss_unclUp, cats_2lss, varorder, outputNodename="dense_17/Softmax")
         worker_2lss_unclDown      = TFTool('DNN_2lss_unclDown', os.environ['CMSSW_BASE'] + '/src/CMGTools/TTHAnalysis/data/kinMVA/tth/2017samples_xmasupdates_tH_selection.pb',
-                                           vars_2lss_unclDown, cats_2lss, varorder)
+                                           vars_2lss_unclDown, cats_2lss, varorder, outputNodename="dense_17/Softmax")
         
         self._MVAs.extend( [worker_2lss_unclUp, worker_2lss_unclDown])
 
@@ -93,7 +102,7 @@ class finalMVA_DNN(Module):
                  "jet4_eta"         : lambda ev : abs(ev.JetSel_Recl_eta[3]) if getattr(ev,'nJet25%s_Recl'%var) > 3 else 9,
                  "nBJetMedium"      : lambda ev : getattr(ev,'nBJetMedium25%s_Recl'%var),
                  "Dilep_pdgId"      : lambda ev : (28 - abs(ev.LepGood_pdgId[int(ev.iLepFO_Recl[0])]) - abs(ev.LepGood_pdgId[int(ev.iLepFO_Recl[1])]))/2,
-                 "metLD"            : lambda ev : (getattr(ev,'MET_pt%s'%var) if ev.year != 2017 else getattr(ev,'METFixEE2017_pt%s'%var)) *0.6 + getattr(ev,'mhtJet25%s_Recl'%var)*0.4,
+                 "metLD"            : lambda ev : (getattr(ev,'MET_pt') if var == '' else getattr(ev,'MET_T1_pt%s'%var)) *0.6 + getattr(ev,'mhtJet25%s_Recl'%var)*0.4,
                  "jet3_phi"         : lambda ev : ev.JetSel_Recl_phi[2] if getattr(ev,'nJet25%s_Recl'%var) >= 3 else -9,
                  "maxeta"           : lambda ev : max( [abs(ev.LepGood_eta[int(ev.iLepFO_Recl[0])]), abs(ev.LepGood_eta[int(ev.iLepFO_Recl[1])])]),
                  "jet1_eta"         : lambda ev : abs(ev.JetSel_Recl_eta[0]) if getattr(ev,'nJet25%s_Recl'%var) > 0 else 9,
@@ -101,18 +110,42 @@ class finalMVA_DNN(Module):
 
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
-        print self.outVars
         declareOutput(self, wrappedOutputTree, self.outVars)
         
     def analyze(self,event):
         myvars = [event.iLepFO_Recl[0],event.iLepFO_Recl[1],event.iLepFO_Recl[2]]
         ret = []
-        if self.inputHelper:
+
+        # if we want to train we wont take all the inputs
+        if self.fillInputs:
             for var in self.inputHelper:
                 ret.append( (var, self.inputHelper[var](event)))
+
+            all_leps = [l for l in Collection(event,"LepGood")]
+            nFO = getattr(event,"nLepFO_Recl")
+            chosen = getattr(event,"iLepFO_Recl")
+            leps = [all_leps[chosen[i]] for i in xrange(nFO)]
+
+            if len(leps) < 2: return False
+            if leps[0].pdgId*leps[1].pdgId < 0: return False
+            if event.nJet25_Recl < 3: return False
+
+            # we scale fake leptons by the fake rate so we reproduce better the kinematics
+            frWeight=1 
+            year=str(event.year) if event.year in [2017,2018] else '2016APV_2016'
+            for l in leps[:2]:
+                if l.mcMatchId: continue # dont scale prompt or flips, we assume similar kinematics in FO and SR
+                thebin=self.fakerate[year][abs(l.pdgId)].FindBin( l.conePt, abs(l.eta))
+                frWeight*=self.fakerate[year][abs(l.pdgId)].GetBinContent(thebin)
+            ret.append( ('frWeight', frWeight))
+
+
         for worker in self._MVAs:
             name = worker.name
             if ( not hasattr(event,"nJet25_jerUp_Recl") and not hasattr(event, "nJet25_jesBBEC1_yearDown_Recl")) and ('_jes' in name or  '_jer' in name or '_uncl' in name): continue # using jer bc components wont change
             ret.extend( [(x,y) for x,y in worker(event).iteritems()])
         writeOutput(self, dict(ret))
+            
+            
+
         return True

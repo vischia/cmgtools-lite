@@ -5,7 +5,7 @@
 #include "CMGTools/TTHAnalysis/interface/CollectionSkimmer.h"
 #include "CMGTools/TTHAnalysis/interface/CombinedObjectTags.h"
 #include "CMGTools/TTHAnalysis/interface/TensorFlowInterface.h"
-#include "CMGTools/TTHAnalysis/interface/ONNXInterface.h"
+#include "TopQuarkAnalysis/TopKinFitter/interface/TtSemiLepKinFitter.h"
 
 namespace {
     struct dictionary {
@@ -14,6 +14,5 @@ namespace {
         PdfWeightProducerTool pdfw;
         SetupIgProfDumpHook hook;
         TensorFlowInterface tf;
-        ONNXInterface oi;
     };
 }

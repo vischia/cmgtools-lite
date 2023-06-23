@@ -18,6 +18,7 @@ class ComponentCreator(object):
          component.splitFactor = 100
          component.fracNegWeights = fracNegWeights
          component.dataset_entries = self.getPrimaryDatasetEntries(dataset,user,pattern,useAAA=useAAA)
+
          return component
 
     def makePrivateMCComponent(self,name,dataset,files,xSec=1, prefix="auto"):
@@ -56,7 +57,7 @@ class ComponentCreator(object):
 
          return component
 
-    def makeMyPrivateMCComponent(self,name,dataset,user,pattern,dbsInstance, xSec=1,useAAA=False):
+    def makeMyPrivateMCComponent(self,name,dataset,user,pattern,dbsInstance, xSec=1,useAAA=True,fracNegWeights=None):
 
         component = cfg.MCComponent(
             dataset=dataset,
@@ -68,6 +69,7 @@ class ComponentCreator(object):
             effCorrFactor = 1,
         )
         component.splitFactor = 100
+        component.fracNegWeights = fracNegWeights
 
         return component
 
@@ -157,6 +159,27 @@ class ComponentCreator(object):
             dataset=dataset,
             name = name,
             files = self.getFilesFromLocal(name,dataset,path,pattern),
+            xSection = xSec,
+            nGenEvents = 1,
+            triggers = [],
+            effCorrFactor = 1,
+        )
+        component.splitFactor = 100
+        return component
+
+    def getFilesFromJSON(self, jsonF, prefix):
+        import json 
+        with open(jsonF) as f:
+            files=json.loads(f.read())['files']
+            f.close()
+        return [prefix + '/' + x for x in files] 
+        
+
+    def makeMCComponentFromJSON(self,name,dataset,jsonF,xSec=1,prefix=''):
+        component = cfg.MCComponent(
+            dataset=dataset,
+            name = name,
+            files = self.getFilesFromJSON(jsonF, prefix),
             xSection = xSec,
             nGenEvents = 1,
             triggers = [],

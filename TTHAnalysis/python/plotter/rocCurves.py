@@ -31,8 +31,8 @@ def hist2ROC1d(hsig,hbg):
     if len(si) == 2: # just one WP + dummy (100%,100%)
         si = [si[0]]; bi = [ bi[0] ]
     bins = len(si)
-    ret = ROOT.TGraph(bins)
-    for i in xrange(bins):
+    ret = ROOT.TGraph(bins-1)
+    for i in xrange(bins-1):
         ret.SetPoint(i, bi[i]/sumb, si[i]/sums)
     ret.dim=1
     return ret
@@ -106,13 +106,14 @@ def doLegend(rocs,textSize=0.035,placement='BR'):
         if placement == 'BR':
             (x1,y1,x2,y2) = (.68, .25 + textSize*max(len(rocs)-3,0), .962, .13)
         elif placement == 'TL':
-            (x1,y1,x2,y2) = (.21, .83 - textSize*max(len(rocs)-3,0), .492, .95)
+            (x1,y1,x2,y2) = (.21, .78 - textSize*max(len(rocs)-3,0), .492, .90)
         else: raise RuntimeError, "Unsupported placement %r" % placement
         leg = ROOT.TLegend(x1,y1,x2,y2)
         leg.SetFillColor(0)
         leg.SetShadowColor(0)
         leg.SetTextFont(42)
         leg.SetTextSize(textSize)
+        leg.SetLineColor(0)
         for key,val in rocs:
             leg.AddEntry(val, key, val.style)
         leg.Draw()
@@ -130,6 +131,7 @@ def stackRocks(outname,outfile,rocs,xtit,ytit,options):
     c1.SetGridy(options.showGrid)
     c1.SetGridx(options.showGrid)
     c1.SetLogx(options.logx)
+    c1.SetTopMargin(c1.GetTopMargin()*options.topSpamSize);
     if options.xrange and options.yrange:
         frame = ROOT.TH1F("frame","frame",1000,options.xrange[0], options.xrange[1])
         frame.GetXaxis().SetTitle(xtit)
@@ -151,9 +153,12 @@ def stackRocks(outname,outfile,rocs,xtit,ytit,options):
             allrocs.GetXaxis().SetRangeUser(options.xrange[0], options.xrange[1])
         if options.yrange:
             allrocs.GetYaxis().SetRangeUser(options.yrange[0], options.yrange[1])
-    leg = doLegend(rocs,placement=options.legendPlace)
-    if options.fontsize: leg.SetTextSize(options.fontsize)
+    if not options.nolegend:
+        leg = doLegend(rocs,placement=options.legendPlace)
+        if options.fontsize: leg.SetTextSize(options.fontsize)
+    doTinyCmsPrelim(hasExpo = False,textSize=(0.033)*options.topSpamSize, options=options)
     c1.Print(outname.replace(".root","")+".png")
+    c1.Print(outname.replace(".root","")+".pdf")
     outfile.WriteTObject(c1,"roc_canvas")
 
 if __name__ == "__main__":
@@ -172,6 +177,11 @@ if __name__ == "__main__":
     parser.add_option("--grid", dest="showGrid", action="store_true", default=False, help="Show grid lines")
     parser.add_option("--logx", dest="logx", action="store_true", default=False, help="Log x-axis")
     parser.add_option("--groupBy",  dest="groupBy",  default="process",  type="string", help="Group by: variable, process")
+    parser.add_option("--nolegend",  dest="nolegend",  action="store_true",  help="Remove the legend")
+    parser.add_option("--topSpamSize", dest="topSpamSize",   type="float", default=1.2, help="Zoom factor for the top spam");
+    parser.add_option("--lspam", dest="lspam",   type="string", default="#bf{CMS} #it{Preliminary}", help="Spam text on the right hand side");
+    parser.add_option("--rspam", dest="rspam",   type="string", default="%(lumi) (13 TeV)", help="Spam text on the right hand side");
+
     (options, args) = parser.parse_args()
     options.globalRebin = 1
     options.allowNegative = True # with the fine bins used in ROCs, one otherwise gets nonsensical results
